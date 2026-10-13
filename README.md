@@ -20,6 +20,7 @@ trójlistnik.
 | `mazes/` | układy labiryntów (pliki ze ścieżkami) |
 | `models/` | gotowe modele do druku |
 | `tools/knot.py` | typ węzła drogi przez labirynt |
+| `tools/random_maze.py` | losowy labirynt w formacie pliku ze ścieżkami |
 | `tools/preview.py`, `tools/render.py` | podglądy PNG |
 | `images/` | podglądy |
 
@@ -32,10 +33,24 @@ python maze_cubed.py mazes/lab4_1.txt     # labirynt → models/lab4_1.stl, .3mf
 python maze_cubed.py --size 4 4 4         # pełna kratownica bez przejść
 python ball.py                            # piłka 10 mm → models/ball_10mm.stl, .3mf
 python tools/knot.py mazes/lab4_1.txt     # typ węzła drogi
+python tools/random_maze.py --size 3 3 3 --seed 1 --knot unknot -o mazes/lab3_1.txt
 ```
 
 Generator sprawdza też sam labirynt: czy obejmuje wszystkie komórki, czy
 jest spójny i bez pętli i ile ma wyjść na zewnątrz.
+
+## Labirynty
+
+| Plik | Rozmiar | Droga | Odgałęzienia | Węzeł | Uwagi |
+|---|---|---|---|---|---|
+| `lab3_1` | 3×3×3, 62 mm, ~19 g | 14 z 27 komórek | 5 | brak | rozgrzewka, wydruk próbny |
+| `lab4_1` | 4×4×4, 82 mm, ~42 g | 39 z 64 komórek | 9 | trójlistnik | główne wyzwanie |
+
+![Labirynt lab3_1](images/lab3_1.png)
+
+`lab3_1` jest wylosowany przez `tools/random_maze.py` (ziarno 1): droga
+idzie we wszystkich sześciu kierunkach, wejście jest od spodu, a wyjście
+na górze.
 
 ## Format pliku ze ścieżkami
 
