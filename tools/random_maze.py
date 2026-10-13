@@ -8,7 +8,11 @@ układ, który najlepiej spełnia kryteria:
 - długość drogi w zadanym zakresie,
 - ślepe zaułki raczej dłuższe niż jednokomórkowe,
 - wejście i wyjście na przeciwległych ściankach,
-- opcjonalnie: droga zawiązana (lub nie) w węzeł.
+- opcjonalnie: droga zawiązana (lub nie) w węzeł. Losowe drzewo prawie
+  nigdy nie zawiązuje drogi, więc w trybie --knot knotted kolejność jest
+  odwrócona: losowa ścieżka Hamiltona (wężyk mieszany ruchami „backbite”)
+  jest silnie splątana; jej odcinek między przeciwległymi ściankami
+  o wyznaczniku węzła różnym od 1 staje się drogą, a drzewo wyrasta z niej.
 
 Wynik zawsze odtwarzalny dla danego --seed.
 
@@ -32,11 +36,18 @@ def add(a, d):
     return tuple(x + y for x, y in zip(a, d))
 
 
-def wilson_tree(cells, rng):
-    """Jednostajnie losowe drzewo rozpinające (algorytm Wilsona)."""
+def wilson_tree(cells, rng, route=None):
+    """Jednostajnie losowe drzewo rozpinające (algorytm Wilsona); jeśli podano
+    drogę (listę sąsiednich komórek), drzewo wyrasta z niej."""
     cells = list(cells)
-    in_tree = {cells[0]}
     adj = {x: set() for x in cells}
+    if route:
+        in_tree = set(route)
+        for a, b in zip(route, route[1:]):
+            adj[a].add(b)
+            adj[b].add(a)
+    else:
+        in_tree = {cells[0]}
     cellset = set(cells)
     for start in cells:
         if start in in_tree:
@@ -69,6 +80,58 @@ def tree_path(adj, a, b):
         route.append(x)
         x = prev[x]
     return route[::-1]
+
+
+def snake(N):
+    """Ścieżka Hamiltona przez wszystkie komórki (wężyk) — punkt startowy."""
+    nx, ny, nz = N
+    path = []
+    for z in range(1, nz + 1):
+        layer = []
+        for y in range(1, ny + 1):
+            row = [(x, y, z) for x in range(1, nx + 1)]
+            layer += row if y % 2 else row[::-1]
+        path += layer if z % 2 else layer[::-1]
+    return path
+
+
+def backbite(path, N, rng, steps):
+    """Ruchy „backbite”: losowe przekształcenia ścieżki Hamiltona, które
+    zachowują jej własność i z czasem silnie ją mieszają."""
+    inside = lambda x: all(1 <= v <= n for v, n in zip(x, N))
+    pos = {x: i for i, x in enumerate(path)}
+    for _ in range(steps):
+        if rng.random() < 0.5:
+            path.reverse()
+            pos = {x: i for i, x in enumerate(path)}
+        end = path[-1]
+        y = add(end, rng.choice(DIRS))
+        if not inside(y) or y == path[-2]:
+            continue
+        i = pos[y]
+        path[i + 1:] = path[i + 1:][::-1]
+        for k in range(i + 1, len(path)):
+            pos[path[k]] = k
+    return path
+
+
+def knotted_routes(path, N, rng, args, samples):
+    """Losowe odcinki ścieżki Hamiltona jako drogi od wejścia do wyjścia."""
+    inside = lambda x: all(1 <= v <= n for v, n in zip(x, N))
+    total = len(path)
+    lo, hi = int(args.min_len * total), int(args.max_len * total)
+    for _ in range(samples):
+        L = rng.randint(lo, hi)
+        i = rng.randrange(0, total - L + 1)
+        seg = path[i:i + L]
+        a_out = [d for d in DIRS if not inside(add(seg[0], d))]
+        b_out = [d for d in DIRS if not inside(add(seg[-1], d))]
+        pairs = [(da, db) for da in a_out for db in b_out
+                 if not args.opposite or db == tuple(-v for v in da)]
+        if not pairs:
+            continue
+        da, db = rng.choice(pairs)
+        yield [add(seg[0], da)] + seg + [add(seg[-1], db)]
 
 
 def boundary_exits(N):
@@ -144,7 +207,12 @@ def main():
     ap.add_argument("--max-len", type=float, default=0.65, help="maks. długość drogi (ułamek komórek)")
     ap.add_argument("--opposite", action=argparse.BooleanOptionalAction, default=True,
                     help="wejście i wyjście na przeciwległych ściankach")
-    ap.add_argument("--knot", choices=["any", "unknot", "knotted"], default="any")
+    ap.add_argument("--knot", choices=["any", "unknot", "knotted"], default="any",
+                    help="knotted: najpierw losowana jest zawiązana droga, potem reszta drzewa")
+    ap.add_argument("--det", type=int, default=None,
+                    help="(knotted) wymagany wyznacznik węzła, np. 3 = trójlistnik, 5 = ósemka")
+    ap.add_argument("--mix", type=int, default=400,
+                    help="(knotted) ruchów mieszających ścieżkę Hamiltona między próbami")
     ap.add_argument("--name", default=None, help="nazwa zmiennej w pliku")
     ap.add_argument("-o", "--out", required=True)
     args = ap.parse_args()
@@ -155,20 +223,37 @@ def main():
     exits = boundary_exits(N)
     rng = random.Random(args.seed)
     best = None
+    import numpy as np
+    import knot
+    ham = backbite(snake(N), N, rng, 20 * len(cells))
     for _ in range(args.tries):
-        adj = wilson_tree(cells, rng)
-        (ca, oa, _), (cb, ob, _) = rng.sample(exits, 2)
-        if ca == cb:
-            continue
-        route = [oa] + tree_path(adj, ca, cb) + [ob]
+        if args.knot == "knotted":
+            ham = backbite(ham, N, rng, args.mix)
+            found = None
+            for route in knotted_routes(ham, N, rng, args, 30):
+                moves = {tuple(b - a for a, b in zip(p, q)) for p, q in zip(route, route[1:])}
+                if len(moves) < 6:
+                    continue
+                det = knot.determinant(knot.close_outside([np.array(x, float) for x in route]))
+                if det != 1 and (args.det is None or det == args.det):
+                    found = route            # wyznacznik ≠ 1: na pewno węzeł
+                    break
+            if not found:
+                continue
+            route = found
+            adj = wilson_tree(cells, rng, route[1:-1])
+        else:
+            adj = wilson_tree(cells, rng)
+            (ca, oa, _), (cb, ob, _) = rng.sample(exits, 2)
+            if ca == cb:
+                continue
+            route = [oa] + tree_path(adj, ca, cb) + [ob]
         s = score(adj, route, N, args)
         if s is None or (best and s <= best[0]):
             continue
-        if args.knot != "any":
-            import knot
-            import numpy as np
+        if args.knot == "unknot":
             poly, _ = knot.alexander(knot.close_outside([np.array(x, float) for x in route]), 0)
-            if (str(poly) == "1") != (args.knot == "unknot"):
+            if str(poly) != "1":
                 continue
         best = (s, adj, route)
     if not best:

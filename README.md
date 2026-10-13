@@ -34,6 +34,7 @@ python maze_cubed.py --size 4 4 4         # pełna kratownica bez przejść
 python ball.py                            # piłka 10 mm → models/ball_10mm.stl, .3mf
 python tools/knot.py mazes/lab4_1.txt     # typ węzła drogi
 python tools/random_maze.py --size 3 3 3 --seed 1 --knot unknot -o mazes/lab3_1.txt
+python tools/random_maze.py --size 3 4 5 --seed 1 --tries 300 --knot knotted -o mazes/lab345_1.txt
 ```
 
 Generator sprawdza też sam labirynt: czy obejmuje wszystkie komórki, czy
@@ -45,12 +46,22 @@ jest spójny i bez pętli i ile ma wyjść na zewnątrz.
 |---|---|---|---|---|---|
 | `lab3_1` | 3×3×3, 62 mm, ~19 g | 14 z 27 komórek | 5 | brak | rozgrzewka, wydruk próbny |
 | `lab4_1` | 4×4×4, 82 mm, ~42 g | 39 z 64 komórek | 9 | trójlistnik | główne wyzwanie |
+| `lab345_1` | 3×4×5, 62×82×102 mm, ~40 g | 39 z 60 komórek | 9 | trójlistnik | różne boki ułatwiają orientację |
 
 ![Labirynt lab3_1](images/lab3_1.png)
 
 `lab3_1` jest wylosowany przez `tools/random_maze.py` (ziarno 1): droga
 idzie we wszystkich sześciu kierunkach, wejście jest od spodu, a wyjście
 na górze.
+
+![Labirynt lab345_1](images/lab345_1.png)
+
+`lab345_1` też jest wylosowany (ziarno 1, `--knot knotted`). Wejście
+i wyjście są na przeciwległych wąskich ściankach (3×5 komórek). Losowe
+drzewo prawie nigdy nie zawiązuje drogi, więc w tym trybie generator
+najpierw losuje silnie splątaną ścieżkę Hamiltona, wycina z niej
+zawiązany odcinek i dopiero z niego wyprowadza resztę labiryntu.
+Ósemka (`--det 5`) przy tym rozmiarze praktycznie się nie trafia.
 
 ## Format pliku ze ścieżkami
 

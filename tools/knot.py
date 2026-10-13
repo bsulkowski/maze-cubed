@@ -80,8 +80,9 @@ def close_outside(route):
     return np.array(list(route) + [a_far] + arc + [b_far])
 
 
-def alexander(P, seed):
-    """Wielomian Alexandera zamkniętej łamanej P w losowym rzucie."""
+def diagram(P, seed):
+    """Diagram zamkniętej łamanej P w losowym rzucie: lista skrzyżowań jako
+    (łuk wchodzący, łuk wychodzący, łuk nad, znak), w kolejności przejść dołem."""
     rng = np.random.default_rng(seed)
     q, _ = np.linalg.qr(rng.normal(size=(3, 3)))
     Q = P @ q.T                                # losowy obrót -> rzut na (x, y), wysokość z
@@ -109,20 +110,45 @@ def alexander(P, seed):
                 sign = 1 if (vo[0] * vu[1] - vo[1] * vu[0]) < 0 else -1
                 cr.append((o, to, un, tu, sign))
     m = len(cr)
-    if m == 0:
-        return sp.Integer(1), 0
     # łuki diagramu: krzywa cięta w miejscach przejść dołem
     unders = sorted(range(m), key=lambda k: cr[k][2] + cr[k][3])
     pos_u = [cr[k][2] + cr[k][3] for k in unders]
-    T = sp.symbols("t")
-    M = sp.zeros(m, m)
+    rows = []
     for row, k in enumerate(unders):
         o, to, _, _, s = cr[k]
-        over_arc = np.searchsorted(pos_u, o + to) % m
+        over_arc = int(np.searchsorted(pos_u, o + to)) % m
+        rows.append((row, (row + 1) % m, over_arc, s))
+    return rows
+
+
+def determinant(P, seed=0):
+    """Wyznacznik węzła |Δ(−1)|, liczony numerycznie (szybki test: ≠ 1 => węzeł)."""
+    rows = diagram(P, seed)
+    m = len(rows)
+    if m < 3:
+        return 1
+    M = np.zeros((m, m))
+    for i_in, j_out, over, s in rows:
+        tt = -1.0                              # t = −1 (także 1/t = −1)
+        M[i_in, i_in] += tt
+        M[i_in, j_out] += -1
+        M[i_in, over] += 1 - tt
+    return int(round(abs(np.linalg.det(M[1:, 1:]))))
+
+
+def alexander(P, seed):
+    """Wielomian Alexandera zamkniętej łamanej P w losowym rzucie."""
+    rows = diagram(P, seed)
+    m = len(rows)
+    if m == 0:
+        return sp.Integer(1), 0
+    T = sp.symbols("t")
+    M = sp.zeros(m, m)
+    for i_in, j_out, over, s in rows:
         tt = T if s > 0 else 1 / T
-        M[row, row] += tt                      # łuk kończący się w tym skrzyżowaniu
-        M[row, (row + 1) % m] += -1            # łuk zaczynający się za nim
-        M[row, over_arc] += 1 - tt
+        M[i_in, i_in] += tt                    # łuk kończący się w tym skrzyżowaniu
+        M[i_in, j_out] += -1                   # łuk zaczynający się za nim
+        M[i_in, over] += 1 - tt
     D = sp.factor(sp.simplify(M[1:, 1:].det()))
     coeffs = sp.Poly(sp.numer(sp.together(D)), T).all_coeffs()
     while coeffs and coeffs[-1] == 0:
