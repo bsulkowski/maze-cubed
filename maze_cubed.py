@@ -13,7 +13,9 @@ Konstrukcja:
 - w każdej komórce 4 wsporniki pod skrzyżowaniami szprosów sufitu,
   w rzucie biegnące po przekątnej do najbliższego narożnego pręta
   pionowego, zaczepione na wysokości górnej linii szprosów;
-- w dolnej warstwie: ramka środkowego okienka dolnej ścianki sięga stołu;
+- pod każdą poziomą ścianką: podpórka — ramka środkowego okienka sięgająca
+  w dół do poziomu spodu prętów (o grubość fazki pod szprosy); na dolnej
+  ściance kostki opiera się o stół;
 - labirynt: na ścieżkach z pliku ścianka między kolejnymi komórkami jest
   otwarta (bez szprosów). Wsporniki komórki znikają tylko wtedy, gdy
   otwarty jest jej sufit. Nad otwartą ścianką boczną górny pręt dostaje
@@ -86,6 +88,10 @@ def w_brace():
 
 def w_knee():
     return MUNTIN - 13 * EPS
+
+
+def w_pad():
+    return MUNTIN - 15 * EPS
 
 
 def pane_size():
@@ -325,10 +331,12 @@ def knee_braces():
     return out
 
 
-def cell_foot():
-    """Oparcie o stół: ramka środkowego okienka dolnej ścianki komórki
-    przedłużona w dół do poziomu spodu prętów."""
-    c0, c1, w = CENTERS[0], CENTERS[-1], w_brace()
+def cell_pad():
+    """Podpórka: ramka środkowego okienka poziomej ścianki przedłużona w dół
+    do poziomu spodu prętów, czyli wystająca pod szprosy o grubość fazki
+    (przy szprosie równym płaskiej części pręta). Na dolnej ściance kostki
+    opiera się o stół."""
+    c0, c1, w = CENTERS[0], CENTERS[-1], w_pad()
     z0, z1 = -h, 0.0
     outer = m3d.Manifold.cube([c1 - c0 + w, c1 - c0 + w, z1 - z0]).translate([c0 - w / 2, c0 - w / 2, z0])
     inner = m3d.Manifold.cube([c1 - c0 - w, c1 - c0 - w, z1 - z0 + 2]).translate([c0 + w / 2, c0 + w / 2, z0 - 1])
@@ -348,12 +356,13 @@ def build():
             parts.append(braces.translate([k * EDGE for k in cell]))
     knees = knee_braces()
     parts += knees
-    foot = cell_foot()
-    for i, j in itertools.product(range(N[0]), range(N[1])):
-        if face(2, (i, j, 0)) not in OPEN:
-            parts.append(foot.translate([i * EDGE, j * EDGE, 0]))
+    pad, n_pads = cell_pad(), 0
+    for i, j, k in itertools.product(range(N[0]), range(N[1]), range(N[2] + 1)):
+        if face(2, (i, j, k)) not in OPEN:          # pozioma ścianka pod komórką (i, j, k)
+            n_pads += 1
+            parts.append(pad.translate([i * EDGE, j * EDGE, k * EDGE]))
     print(f"otwartych ścianek: {len(OPEN)} | wsporników: {n_braces} z {len(BRACES) * np.prod(N)}"
-          f" | zastrzałów: {len(knees)}")
+          f" | zastrzałów: {len(knees)} | podpórek: {n_pads}")
 
     frame = m3d.Manifold.batch_boolean(parts, m3d.OpType.Add).translate([h, h, h])
     mesh = frame.to_mesh()

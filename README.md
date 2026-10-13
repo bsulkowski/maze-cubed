@@ -97,8 +97,9 @@ Rozmiar kratownicy jest odgadywany ze ścieżek; można go też podać jawnie:
   wysokości górnej linii szprosów. Znikają tylko razem z sufitem.
 - **Zastrzały:** nad każdą otwartą ścianką boczną dwa zastrzały 45°
   podpierają górny pręt, na tej samej wysokości co wsporniki.
-- **Oparcie:** w dolnej warstwie ramka środkowego okienka podłogi sięga
-  stołu.
+- **Podpórki:** pod każdą poziomą ścianką ramka środkowego okienka sięga
+  w dół do poziomu spodu prętów, czyli wystaje pod szprosy o grubość
+  fazki. Na dolnej ściance kostki opiera się o stół.
 
 Wymiary są parametrami na początku `maze_cubed.py`; pręt, fazkę, szpros
 i bok komórki można też podać w wierszu poleceń (`--rod`, `--chamfer`,
@@ -107,7 +108,7 @@ np. `lab3_1_rod2.4_chamfer0.4_muntin1.6`. Szpros nie może być szerszy
 niż płaska część pręta (pręt − 2 × fazka).
 
 Wariant próbny `lab3_1_rod2.4_chamfer0.4_muntin1.6` — wymiary dobrane do
-dyszy 0,4 mm (pręt 6 linii, szpros 4 linie): 62,4 mm, ok. 35 g PLA,
+dyszy 0,4 mm (pręt 6 linii, szpros 4 linie): 62,4 mm, ok. 36 g PLA,
 okienka 4,8 mm, otwory boczne przepuszczają do ok. 17 mm.
 
 ![Wariant lab3_1_rod2.4_chamfer0.4_muntin1.6](images/lab3_1_rod2.4_chamfer0.4_muntin1.6.png)
