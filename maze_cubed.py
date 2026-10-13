@@ -69,6 +69,25 @@ def set_dims(edge=None, rod=None, chamfer=None, muntin=None):
     BRACES = braces_spec()
 
 
+# Rzeczywiste szerokości elementów cieńszych od pręta. Szpros bywa równy
+# płaskiej części pręta (pręt − 2 × fazka); gdyby leżał dokładnie na jej
+# krawędziach, przy niektórych wymiarach błędy zaokrągleń dają szczeliny
+# w siatce. Dlatego każdy rodzaj elementu jest węższy o inną wielokrotność
+# EPS niż szpros nominalny i niż płaskie ścianki prętów (0–3·EPS z każdej
+# strony): żadne dwie ścianki nie leżą w jednej płaszczyźnie ani na
+# krawędzi innej, niezależnie od wymiarów. Różnice to 20–60 µm.
+def w_muntin():
+    return MUNTIN - 9 * EPS
+
+
+def w_brace():
+    return MUNTIN - 11 * EPS
+
+
+def w_knee():
+    return MUNTIN - 13 * EPS
+
+
 def pane_size():
     """Bok okienka w kratce szprosów."""
     return (EDGE - ROD - (DIVS - 1) * MUNTIN) / DIVS
@@ -237,7 +256,7 @@ def muntins():
     """Jedna kratka 2D na płaszczyznę, złożona z kratek poszczególnych
     ścianek (bez otwartych); linie szprosów przechodzą ciągle przez pręty.
     Suma liczona w 2D jest dokładna, więc nie powstają współpłaszczyznowe ścianki."""
-    w = MUNTIN
+    w = w_muntin()
     parts = []
     cell_grid = m3d.CrossSection()
     for cc in CENTERS:
@@ -281,16 +300,15 @@ def braces_spec():
 
 
 def cell_braces():
-    w = MUNTIN - 2 * EPS
+    w = w_brace()
     return m3d.Manifold.batch_boolean([bar(p, q, s, w) for p, q, s in BRACES], m3d.OpType.Add)
 
 
 def knee_braces():
     """Zastrzały pod górnym prętem każdej otwartej ścianki bocznej: od obu
     prętów pionowych (na wysokości górnej linii szprosów) do pręta górnego
-    (nad skrajnymi liniami szprosów), pod 45°, w płaszczyźnie ścianki.
-    Szerokość 1 - 6·EPS: inna niż płaskie ścianki prętów i szprosów."""
-    w = MUNTIN - 6 * EPS
+    (nad skrajnymi liniami szprosów), pod 45°, w płaszczyźnie ścianki."""
+    w = w_knee()
     c0, c1 = CENTERS[0], CENTERS[-1]
     out = []
     for axis, lo in OPEN:
@@ -310,7 +328,7 @@ def knee_braces():
 def cell_foot():
     """Oparcie o stół: ramka środkowego okienka dolnej ścianki komórki
     przedłużona w dół do poziomu spodu prętów."""
-    c0, c1, w = CENTERS[0], CENTERS[-1], MUNTIN - 2 * EPS
+    c0, c1, w = CENTERS[0], CENTERS[-1], w_brace()
     z0, z1 = -h, 0.0
     outer = m3d.Manifold.cube([c1 - c0 + w, c1 - c0 + w, z1 - z0]).translate([c0 - w / 2, c0 - w / 2, z0])
     inner = m3d.Manifold.cube([c1 - c0 - w, c1 - c0 - w, z1 - z0 + 2]).translate([c0 + w / 2, c0 + w / 2, z0 - 1])
