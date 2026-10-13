@@ -34,6 +34,7 @@ python maze_cubed.py --size 4 4 4         # pełna kratownica bez przejść
 python maze_cubed.py mazes/lab3_1.txt --rod 2.4 --muntin 1.6 --chamfer 0.4   # grubsza konstrukcja
 python ball.py                            # piłka 10 mm → models/ball_10mm.stl, .3mf
 python tools/knot.py mazes/lab4_1.txt     # typ węzła drogi
+python tools/random_maze.py --size 2 2 2 --seed 3 --min-len 0.5 --max-len 1 -o mazes/lab2_1.txt
 python tools/random_maze.py --size 3 3 3 --seed 1 --knot unknot -o mazes/lab3_1.txt
 python tools/random_maze.py --size 3 4 5 --seed 1 --tries 300 --knot knotted -o mazes/lab345_1.txt
 ```
@@ -45,9 +46,18 @@ jest spójny i bez pętli i ile ma wyjść na zewnątrz.
 
 | Plik | Rozmiar | Droga | Odgałęzienia | Węzeł | Uwagi |
 |---|---|---|---|---|---|
+| `lab2_1` | 2×2×2, 42 mm, ~13 g* | 8 z 8 komórek | 0 | brak | tylko do testów druku |
 | `lab3_1` | 3×3×3, 62 mm, ~19 g | 14 z 27 komórek | 5 | brak | rozgrzewka, wydruk próbny |
 | `lab4_1` | 4×4×4, 82 mm, ~41 g | 39 z 64 komórek | 9 | trójlistnik | główne wyzwanie |
 | `lab345_1` | 3×4×5, 62×82×102 mm, ~39 g | 39 z 60 komórek | 9 | trójlistnik | różne boki ułatwiają orientację |
+
+\* `lab2_1` jest w `models/` tylko w wymiarach próbnych (pręt 2,4 mm,
+szpros 1,6 mm). Droga przechodzi przez wszystkie 8 komórek, wejście jest
+od spodu, wyjście na górze; model ma wszystkie rodzaje elementów:
+otwarte ścianki boczne z zastrzałami, otwarte i zamknięte sufity, wsporniki
+i podpórki.
+
+![Labirynt lab2_1](images/lab2_1.png)
 
 ![Labirynt lab3_1](images/lab3_1.png)
 
