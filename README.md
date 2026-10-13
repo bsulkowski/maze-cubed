@@ -31,6 +31,7 @@ pip install -r requirements.txt
 
 python maze_cubed.py mazes/lab4_1.txt     # labirynt → models/lab4_1.stl, .3mf
 python maze_cubed.py --size 4 4 4         # pełna kratownica bez przejść
+python maze_cubed.py mazes/lab3_1.txt --rod 3 --muntin 2   # grubsza konstrukcja
 python ball.py                            # piłka 10 mm → models/ball_10mm.stl, .3mf
 python tools/knot.py mazes/lab4_1.txt     # typ węzła drogi
 python tools/random_maze.py --size 3 3 3 --seed 1 --knot unknot -o mazes/lab3_1.txt
@@ -99,9 +100,19 @@ Rozmiar kratownicy jest odgadywany ze ścieżek; można go też podać jawnie:
 - **Oparcie:** w dolnej warstwie ramka środkowego okienka podłogi sięga
   stołu.
 
-Wymiary są parametrami na początku `maze_cubed.py`. Elementy, które się
-stykają, różnią się grubością o kilka mikrometrów (`EPS`), żeby żadne ich
-ścianki nie były współpłaszczyznowe — dzięki temu siatka jest zawsze
+Wymiary są parametrami na początku `maze_cubed.py`; pręt, fazkę, szpros
+i bok komórki można też podać w wierszu poleceń (`--rod`, `--chamfer`,
+`--muntin`, `--edge`), a nazwa pliku wynikowego dostaje wtedy przyrostek,
+np. `lab3_1_rod3_muntin2`. Szpros nie może być szerszy niż płaska część
+pręta (pręt − 2 × fazka).
+
+Wariant próbny `lab3_1_rod3_muntin2` (pręt 3 mm, szpros 2 mm): 63 mm,
+ok. 54 g PLA, okienka 4,33 mm, otwory boczne przepuszczają do ok. 16,7 mm.
+
+![Wariant lab3_1_rod3_muntin2](images/lab3_1_rod3_muntin2.png)
+
+Elementy, które się stykają, różnią się grubością o kilka mikrometrów
+(`EPS`), żeby żadne ich ścianki nie były współpłaszczyznowe — dzięki temu siatka jest zawsze
 szczelna i bez zdublowanych wierzchołków.
 
 ## Druk

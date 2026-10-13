@@ -46,18 +46,33 @@ EPS = 0.005      # mm, mikro-odsunięcia, dzięki którym ścianki różnych ele
                  # nigdy nie są współpłaszczyznowe (siatka wychodzi czysta);
                  # 5–30 µm, niewidoczne w druku
 
-h = ROD / 2
-c = CHAMFER
 
-# Pręty biegnące wzdłuż różnych osi różnią się grubością o EPS, a węzły
-# narożne są o kolejne EPS mniejsze: płaskie ścianki krzyżujących się prętów
-# nigdy nie leżą w jednej płaszczyźnie, niezależnie od rozmiaru kratownicy.
-H_AXIS = [h, h - EPS, h - 2 * EPS]
-H_NODE = h - 3 * EPS
 
-# osie szprosów w obrębie jednej komórki, rozstawione na równe okienka
-_pane = (EDGE - ROD - (DIVS - 1) * MUNTIN) / DIVS
-CENTERS = [h + k * _pane + (k - 0.5) * MUNTIN for k in range(1, DIVS)]
+def set_dims(edge=None, rod=None, chamfer=None, muntin=None):
+    """Ustawia wymiary konstrukcji i przelicza wielkości pochodne."""
+    global EDGE, ROD, CHAMFER, MUNTIN, h, c, H_AXIS, H_NODE, CENTERS, BRACES
+    EDGE = EDGE if edge is None else edge
+    ROD = ROD if rod is None else rod
+    CHAMFER = CHAMFER if chamfer is None else chamfer
+    MUNTIN = MUNTIN if muntin is None else muntin
+    assert MUNTIN <= ROD - 2 * CHAMFER + 1e-9, "szpros szerszy niż płaska część pręta"
+    h = ROD / 2
+    c = CHAMFER
+    # Pręty biegnące wzdłuż różnych osi różnią się grubością o EPS, a węzły
+    # narożne są o kolejne EPS mniejsze: płaskie ścianki krzyżujących się
+    # prętów nigdy nie leżą w jednej płaszczyźnie.
+    H_AXIS = [h, h - EPS, h - 2 * EPS]
+    H_NODE = h - 3 * EPS
+    # osie szprosów w obrębie jednej komórki, rozstawione na równe okienka
+    pane = (EDGE - ROD - (DIVS - 1) * MUNTIN) / DIVS
+    CENTERS = [h + k * pane + (k - 0.5) * MUNTIN for k in range(1, DIVS)]
+    BRACES = braces_spec()
+
+
+def pane_size():
+    """Bok okienka w kratce szprosów."""
+    return (EDGE - ROD - (DIVS - 1) * MUNTIN) / DIVS
+
 
 # ustawiane przez configure()
 N = (4, 4, 4)
@@ -265,9 +280,6 @@ def braces_spec():
     return out
 
 
-BRACES = braces_spec()
-
-
 def cell_braces():
     w = MUNTIN - 2 * EPS
     return m3d.Manifold.batch_boolean([bar(p, q, s, w) for p, q, s in BRACES], m3d.OpType.Add)
@@ -305,6 +317,9 @@ def cell_foot():
     return outer - inner
 
 
+set_dims()
+
+
 def build():
     """Składa całą bryłę; zwraca trimesh ustawiony na stole (z_min = 0)."""
     parts = rods_and_nodes() + muntins()
@@ -339,13 +354,24 @@ def main():
     ap.add_argument("--size", nargs=3, type=int, metavar=("NX", "NY", "NZ"),
                     help="rozmiar kratownicy (domyślnie z pliku ścieżek albo 4 4 4)")
     ap.add_argument("--out", default="models", help="katalog na pliki STL i 3MF (domyślnie: models)")
+    ap.add_argument("--rod", type=float, help=f"bok przekroju pręta kraty nośnej, mm (domyślnie {ROD:g})")
+    ap.add_argument("--chamfer", type=float, help=f"fazka prętów, mm (domyślnie {CHAMFER:g})")
+    ap.add_argument("--muntin", type=float, help=f"bok przekroju szprosu, mm (domyślnie {MUNTIN:g})")
+    ap.add_argument("--edge", type=float, help=f"bok komórki (rozstaw osi prętów), mm (domyślnie {EDGE:g})")
     args = ap.parse_args()
+
+    defaults = dict(edge=EDGE, rod=ROD, chamfer=CHAMFER, muntin=MUNTIN)
+    set_dims(args.edge, args.rod, args.chamfer, args.muntin)
+    suffix = "".join(f"_{k}{v:g}" for k, v in
+                     dict(edge=EDGE, rod=ROD, chamfer=CHAMFER, muntin=MUNTIN).items()
+                     if v != defaults[k])
 
     paths = load_paths(args.paths) if args.paths else None
     configure(paths, args.size)
     name = (os.path.splitext(os.path.basename(args.paths))[0] if args.paths
-            else "lattice_{}x{}x{}".format(*N))
-    print(f"kratownica {N[0]}×{N[1]}×{N[2]}")
+            else "lattice_{}x{}x{}".format(*N)) + suffix
+    print(f"kratownica {N[0]}×{N[1]}×{N[2]} | pręt {ROD:g} mm, fazka {CHAMFER:g} mm,"
+          f" szpros {MUNTIN:g} mm, okienko {pane_size():.2f} mm")
     if paths:
         describe(paths)
     tm = build()
