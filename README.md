@@ -95,8 +95,13 @@ Rozmiar kratownicy jest odgadywany ze ścieżek; można go też podać jawnie:
 - **Wsporniki sufitu:** 4 w każdej komórce, w rzucie po przekątnej, od
   skrzyżowań szprosów sufitu do narożnych prętów pionowych, zaczepione na
   wysokości górnej linii szprosów. Znikają tylko razem z sufitem.
+  Każdy przekrój poziomy wspornika to kwadrat w osiach kraty, więc
+  w miejscu podparcia wspornik pokrywa się dokładnie z kwadratem
+  skrzyżowania szprosów (względem osi wspornika przekrój jest obrócony
+  o 45°).
 - **Zastrzały:** nad każdą otwartą ścianką boczną dwa zastrzały 45°
-  podpierają górny pręt, na tej samej wysokości co wsporniki.
+  podpierają górny pręt, na tej samej wysokości co wsporniki; przekrój
+  poziomy też kwadratowy.
 - **Podpórki:** pod każdą poziomą ścianką ramka środkowego okienka sięga
   w dół do poziomu spodu prętów, czyli wystaje pod szprosy o grubość
   fazki. Na dolnej ściance kostki opiera się o stół.
@@ -108,7 +113,7 @@ np. `lab3_1_rod2.4_chamfer0.4_muntin1.6`. Szpros nie może być szerszy
 niż płaska część pręta (pręt − 2 × fazka).
 
 Wariant próbny `lab3_1_rod2.4_chamfer0.4_muntin1.6` — wymiary dobrane do
-dyszy 0,4 mm (pręt 6 linii, szpros 4 linie): 62,4 mm, ok. 36 g PLA,
+dyszy 0,4 mm (pręt 6 linii, szpros 4 linie): 62,4 mm, ok. 35 g PLA,
 okienka 4,8 mm, otwory boczne przepuszczają do ok. 17 mm.
 
 ![Wariant lab3_1_rod2.4_chamfer0.4_muntin1.6](images/lab3_1_rod2.4_chamfer0.4_muntin1.6.png)

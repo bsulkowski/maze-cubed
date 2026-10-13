@@ -44,9 +44,11 @@ ROD = 2.0        # mm, bok kwadratowego przekroju pręta
 CHAMFER = 0.5    # mm, ścięcie kantów (fazka 45°)
 MUNTIN = 1.0     # mm, bok kwadratowego przekroju szprosu
 DIVS = 3         # na ile części szprosy dzielą okno w każdym kierunku
-EPS = 0.005      # mm, mikro-odsunięcia, dzięki którym ścianki różnych elementów
+EPS = 0.0047     # mm, mikro-odsunięcia, dzięki którym ścianki różnych elementów
                  # nigdy nie są współpłaszczyznowe (siatka wychodzi czysta);
-                 # 5–30 µm, niewidoczne w druku
+                 # 5–70 µm, niewidoczne w druku. Wartość celowo „nieokrągła”:
+                 # małe wielokrotności EPS nie trafiają w okrągłe wymiary w mm,
+                 # więc odsunięcia nie znoszą się przypadkiem z różnicami wymiarów
 
 
 
@@ -77,7 +79,7 @@ def set_dims(edge=None, rod=None, chamfer=None, muntin=None):
 # w siatce. Dlatego każdy rodzaj elementu jest węższy o inną wielokrotność
 # EPS niż szpros nominalny i niż płaskie ścianki prętów (0–3·EPS z każdej
 # strony): żadne dwie ścianki nie leżą w jednej płaszczyźnie ani na
-# krawędzi innej, niezależnie od wymiarów. Różnice to 20–60 µm.
+# krawędzi innej, niezależnie od wymiarów. Różnice to 20–70 µm.
 def w_muntin():
     return MUNTIN - 9 * EPS
 
@@ -225,18 +227,24 @@ def octo_prism(axis, a0, a1, hh=None):
     return p.transform(axis_frame(axis).tolist())
 
 
-def bar(p, q, side, w):
-    """Pręt o przekroju w×w z osią od p do q; jeden bok przekroju
-    równoległy do wektora `side` (prostopadłego do p→q)."""
+def slanted_bar(p, q, w, overrun=0.0, underrun=0.0):
+    """Ukośny graniastosłup, którego każdy przekrój poziomy to kwadrat w×w
+    o bokach równoległych do osi X i Y, a środki przekrojów leżą na odcinku
+    p→q (p niżej niż q). Na obu końcach ścięty poziomo. Przekrój prostopadły
+    do osi nie jest kwadratem — za to tam, gdzie pręt dochodzi do kraty,
+    jego ślad pokrywa się z kwadratem skrzyżowania. `overrun` i `underrun`
+    przedłużają górny i dolny koniec wzdłuż osi o podaną wysokość (żeby
+    końce nie leżały w jednej płaszczyźnie z innymi elementami)."""
     p, q = np.asarray(p, float), np.asarray(q, float)
-    L = np.linalg.norm(q - p)
-    e3 = (q - p) / L
-    e1 = np.asarray(side, float)
-    e1 = e1 / np.linalg.norm(e1)
-    e2 = np.cross(e3, e1)
-    M = np.column_stack([e1, e2, e3, p])
-    return (m3d.Manifold.cube([w, w, L]).translate([-w / 2, -w / 2, 0])
-            .transform(M.tolist()))
+    d = q - p
+    assert d[2] > 0
+    q = q + d / d[2] * overrun
+    p = p - d / d[2] * underrun
+    d = q - p
+    M = [[1, 0, d[0] / d[2], p[0]],
+         [0, 1, d[1] / d[2], p[1]],
+         [0, 0, 1, p[2]]]
+    return m3d.Manifold.cube([w, w, d[2]]).translate([-w / 2, -w / 2, 0]).transform(M)
 
 
 def rods_and_nodes():
@@ -298,22 +306,24 @@ def braces_spec():
         for b in CENTERS:
             cx = 0.0 if a < EDGE / 2 else EDGE
             cy = 0.0 if b < EDGE / 2 else EDGE
-            anchor = (cx, cy, CENTERS[-1])
-            top = (a, b, EDGE)
-            side = (b - cy, -(a - cx), 0.0)      # poziomo, w poprzek wspornika
-            out.append((anchor, top, side))
+            out.append(((cx, cy, CENTERS[-1]), (a, b, EDGE)))
     return out
 
 
 def cell_braces():
+    """Wsporniki jako ukośne graniastosłupy o poziomym przekroju kwadratowym:
+    na wysokości sufitu ich przekrój to dokładnie kwadrat skrzyżowania
+    szprosów (względem osi wspornika — przekrój obrócony o 45°)."""
     w = w_brace()
-    return m3d.Manifold.batch_boolean([bar(p, q, s, w) for p, q, s in BRACES], m3d.OpType.Add)
+    return m3d.Manifold.batch_boolean([slanted_bar(p, q, w, 4 * EPS, 4 * EPS) for p, q in BRACES],
+                                      m3d.OpType.Add)
 
 
 def knee_braces():
     """Zastrzały pod górnym prętem każdej otwartej ścianki bocznej: od obu
     prętów pionowych (na wysokości górnej linii szprosów) do pręta górnego
-    (nad skrajnymi liniami szprosów), pod 45°, w płaszczyźnie ścianki."""
+    (nad skrajnymi liniami szprosów), pod 45°, w płaszczyźnie ścianki.
+    Przekrój poziomy kwadratowy, jak przy wspornikach sufitu."""
     w = w_knee()
     c0, c1 = CENTERS[0], CENTERS[-1]
     out = []
@@ -327,7 +337,7 @@ def knee_braces():
         for pv, ph in ((0.0, c0), (EDGE, c1)):    # (pręt pionowy, punkt na pręcie górnym)
             p = list(base); p[along] += pv; p[2] += c1
             q = list(base); q[along] += ph; q[2] = z_top
-            out.append(bar(p, q, np.eye(3)[axis], w))
+            out.append(slanted_bar(p, q, w, 6 * EPS, 6 * EPS))
     return out
 
 
