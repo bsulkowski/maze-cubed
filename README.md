@@ -93,15 +93,15 @@ Rozmiar kratownicy jest odgadywany ze ścieżek; można go też podać jawnie:
   okienka (5,33 mm), wyśrodkowana w płaszczyźnie prętów. Na przejściach
   szprosów nie ma.
 - **Wsporniki sufitu:** 4 w każdej komórce, w rzucie po przekątnej, od
-  skrzyżowań szprosów sufitu do narożnych prętów pionowych, zaczepione na
-  wysokości górnej linii szprosów. Znikają tylko razem z sufitem.
-  Każdy przekrój poziomy wspornika to kwadrat w osiach kraty, więc
-  w miejscu podparcia wspornik pokrywa się dokładnie z kwadratem
-  skrzyżowania szprosów (względem osi wspornika przekrój jest obrócony
-  o 45°).
+  skrzyżowań szprosów sufitu do narożnych prętów pionowych. Znikają tylko
+  razem z sufitem. Każdy przekrój poziomy wspornika to kwadrat w osiach
+  kraty (względem osi wspornika obrócony o 45°), a górny koniec wypada
+  na spodzie podpórki, tam gdzie zaczyna się most — dokładnie pod
+  kwadratem skrzyżowania szprosów.
 - **Zastrzały:** nad każdą otwartą ścianką boczną dwa zastrzały 45°
-  podpierają górny pręt, na tej samej wysokości co wsporniki; przekrój
-  poziomy też kwadratowy.
+  podpierają spód górnego pręta nad skrajnymi liniami szprosów; przekrój
+  poziomy też kwadratowy. Wsporniki i zastrzały zaczepiają się o pręty
+  pionowe na tej samej wysokości: górna linia szprosów minus pół pręta.
 - **Podpórki:** pod każdą poziomą ścianką ramka środkowego okienka sięga
   w dół do poziomu spodu prętów, czyli wystaje pod szprosy o grubość
   fazki. Na dolnej ściance kostki opiera się o stół.
@@ -114,7 +114,7 @@ niż płaska część pręta (pręt − 2 × fazka).
 
 Wariant próbny `lab3_1_rod2.4_chamfer0.4_muntin1.6` — wymiary dobrane do
 dyszy 0,4 mm (pręt 6 linii, szpros 4 linie): 62,4 mm, ok. 35 g PLA,
-okienka 4,8 mm, otwory boczne przepuszczają do ok. 17 mm.
+okienka 4,8 mm, otwory boczne przepuszczają do ok. 16,5 mm.
 
 ![Wariant lab3_1_rod2.4_chamfer0.4_muntin1.6](images/lab3_1_rod2.4_chamfer0.4_muntin1.6.png)
 

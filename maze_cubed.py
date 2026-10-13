@@ -299,21 +299,25 @@ def muntins():
 def braces_spec():
     """4 wsporniki komórki: od skrzyżowania szprosów sufitu po przekątnej
     (w rzucie) do najbliższego narożnego pręta pionowego, zaczepione na
-    wysokości górnej linii szprosów — tam, gdzie zastrzały przy otwartych
-    ściankach. Przy domyślnych wymiarach ≈ 35,3° od poziomu."""
+    wysokości górnej linii szprosów obniżonej o pół pręta — tak samo jak
+    zastrzały przy otwartych ściankach. Ok. 35,3° od poziomu."""
     out = []
     for a in CENTERS:
         for b in CENTERS:
             cx = 0.0 if a < EDGE / 2 else EDGE
             cy = 0.0 if b < EDGE / 2 else EDGE
-            out.append(((cx, cy, CENTERS[-1]), (a, b, EDGE)))
+            # górny koniec: środek skrzyżowania na spodzie podpórki (z = −h
+            # pod osią sufitu), bo tam zaczyna się most; dolny obniżony
+            # o tyle samo, żeby kąt się nie zmienił
+            out.append(((cx, cy, CENTERS[-1] - h), (a, b, EDGE - h)))
     return out
 
 
 def cell_braces():
     """Wsporniki jako ukośne graniastosłupy o poziomym przekroju kwadratowym:
-    na wysokości sufitu ich przekrój to dokładnie kwadrat skrzyżowania
-    szprosów (względem osi wspornika — przekrój obrócony o 45°)."""
+    na spodzie podpórki sufitu, gdzie zaczyna się most, ich przekrój to
+    dokładnie kwadrat skrzyżowania szprosów (względem osi wspornika —
+    przekrój obrócony o 45°)."""
     w = w_brace()
     return m3d.Manifold.batch_boolean([slanted_bar(p, q, w, 4 * EPS, 4 * EPS) for p, q in BRACES],
                                       m3d.OpType.Add)
@@ -321,8 +325,9 @@ def cell_braces():
 
 def knee_braces():
     """Zastrzały pod górnym prętem każdej otwartej ścianki bocznej: od obu
-    prętów pionowych (na wysokości górnej linii szprosów) do pręta górnego
-    (nad skrajnymi liniami szprosów), pod 45°, w płaszczyźnie ścianki.
+    prętów pionowych (na wysokości górnej linii szprosów obniżonej o pół
+    pręta) do spodu pręta górnego (nad skrajnymi liniami szprosów), pod 45°,
+    w płaszczyźnie ścianki.
     Przekrój poziomy kwadratowy, jak przy wspornikach sufitu."""
     w = w_knee()
     c0, c1 = CENTERS[0], CENTERS[-1]
@@ -335,8 +340,10 @@ def knee_braces():
         base[axis] += EDGE                        # płaszczyzna ścianki
         z_top = base[2] + EDGE
         for pv, ph in ((0.0, c0), (EDGE, c1)):    # (pręt pionowy, punkt na pręcie górnym)
-            p = list(base); p[along] += pv; p[2] += c1
-            q = list(base); q[along] += ph; q[2] = z_top
+            # górny koniec pod spodem pręta górnego (tam zaczyna się most),
+            # dolny obniżony o tyle samo — kąt 45° bez zmian
+            p = list(base); p[along] += pv; p[2] += c1 - h
+            q = list(base); q[along] += ph; q[2] = z_top - h
             out.append(slanted_bar(p, q, w, 6 * EPS, 6 * EPS))
     return out
 
