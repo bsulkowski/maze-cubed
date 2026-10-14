@@ -1,18 +1,18 @@
-"""Typ węzła drogi przez labirynt Maze³.
+"""Knot type of the route through a Maze³ maze.
 
-Droga od wejścia do wyjścia zaczyna się i kończy na zewnątrz kostki, więc
-domknięcie jej łukiem poza kostką jest jednoznaczne, a typ węzła dobrze
-określony. Skrypt:
-1. znajduje drogę między dwoma wyjściami w grafie przejść,
-2. domyka ją: z każdego wyjścia prosto na zewnątrz, potem po dużym okręgu
-   daleko od kostki,
-3. liczy wielomian Alexandera (macierz Alexandera z diagramu) w kilku
-   losowych rzutach.
+The route from entrance to exit starts and ends outside the cube, so
+closing it with an arc outside the cube is unambiguous and the knot type is
+well defined. The script:
+1. finds the route between the two exits in the passage graph,
+2. closes it: from each exit straight outwards, then along a great circle
+   far from the cube,
+3. computes the Alexander polynomial (Alexander matrix of the diagram) in
+   several random projections.
 
-Δ(t) = 1 — niewęzeł albo węzeł o trywialnym wielomianie (co najmniej
-11 skrzyżowań); t² − t + 1 — trójlistnik; t² − 3t + 1 — ósemka.
+Δ(t) = 1 — unknot, or a knot with a trivial polynomial (at least 11
+crossings); t² − t + 1 — trefoil; t² − 3t + 1 — figure-eight.
 
-Użycie:
+Usage:
     python tools/knot.py mazes/lab4_1.txt
 """
 import argparse
@@ -26,19 +26,19 @@ import sympy as sp
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import maze_cubed as mc  # noqa: E402
 
-KNOWN = {"1": "niewęzeł (albo węzeł o trywialnym wielomianie Alexandera)",
-         "t**2 - t + 1": "trójlistnik (3₁)",
-         "t**2 - 3*t + 1": "ósemka (4₁)",
-         "t**4 - t**3 + t**2 - t + 1": "węzeł 5₁",
-         "2*t**2 - 3*t + 2": "węzeł 5₂"}
+KNOWN = {"1": "unknot (or a knot with a trivial Alexander polynomial)",
+         "t**2 - t + 1": "trefoil (3₁)",
+         "t**2 - 3*t + 1": "figure-eight (4₁)",
+         "t**4 - t**3 + t**2 - t + 1": "knot 5₁",
+         "2*t**2 - 3*t + 2": "knot 5₂"}
 
 
 def solution_path(paths):
-    """Droga między dwoma wyjściami na zewnątrz (BFS w grafie przejść)."""
+    """Route between the two exits (BFS in the passage graph)."""
     g = mc.maze_graph(paths)
     exits = [x for x in g if not mc.is_inside(x)]
     if len(exits) != 2:
-        sys.exit(f"oczekiwane dokładnie 2 wyjścia na zewnątrz, jest {len(exits)}: {exits}")
+        sys.exit(f"expected exactly 2 exits, found {len(exits)}: {exits}")
     start, goal = exits
     prev, queue = {start: None}, deque([start])
     while queue:
@@ -48,7 +48,7 @@ def solution_path(paths):
                 prev[y] = x
                 queue.append(y)
     if goal not in prev:
-        sys.exit("wyjścia nie są połączone")
+        sys.exit("the exits are not connected")
     route, x = [], goal
     while x is not None:
         route.append(np.array(x, float))
@@ -57,18 +57,18 @@ def solution_path(paths):
 
 
 def close_outside(route):
-    """Domknięcie drogi łukiem daleko poza kostką."""
+    """Close the route with an arc far outside the cube."""
     center = (np.array(mc.N, float) + 1) / 2
     R = 4 * max(mc.N)
 
     def outward(end, inner):
-        d = end - inner                        # kierunek wyjścia z kostki
+        d = end - inner                        # direction out of the cube
         return end + d * R
 
     a_far, b_far = outward(route[-1], route[-2]), outward(route[0], route[1])
     u, v = a_far - center, b_far - center
     u, v = u / np.linalg.norm(u), v / np.linalg.norm(v)
-    # okrąg wielki od u do v (dla kierunków przeciwnych — przez dowolny prostopadły)
+    # great circle from u to v (for opposite directions — through any perpendicular)
     w = v - np.dot(u, v) * u
     if np.linalg.norm(w) < 1e-9:
         w = np.cross(u, [1, 0, 0] if abs(u[0]) < 0.9 else [0, 1, 0])
@@ -81,14 +81,14 @@ def close_outside(route):
 
 
 def diagram(P, seed):
-    """Diagram zamkniętej łamanej P w losowym rzucie: lista skrzyżowań jako
-    (łuk wchodzący, łuk wychodzący, łuk nad, znak), w kolejności przejść dołem."""
+    """Diagram of the closed polyline P in a random projection: crossings as
+    (incoming arc, outgoing arc, over arc, sign), in order of undercrossings."""
     rng = np.random.default_rng(seed)
     q, _ = np.linalg.qr(rng.normal(size=(3, 3)))
-    Q = P @ q.T                                # losowy obrót -> rzut na (x, y), wysokość z
+    Q = P @ q.T                                # random rotation -> projection onto (x, y), height z
     n = len(Q)
     segs = [(Q[i], Q[(i + 1) % n]) for i in range(n)]
-    cr = []                                    # (odc. nad, t nad, odc. pod, t pod, znak)
+    cr = []                                    # (over seg., t over, under seg., t under, sign)
     for i in range(n):
         for j in range(i + 2, n):
             if i == 0 and j == n - 1:
@@ -110,7 +110,7 @@ def diagram(P, seed):
                 sign = 1 if (vo[0] * vu[1] - vo[1] * vu[0]) < 0 else -1
                 cr.append((o, to, un, tu, sign))
     m = len(cr)
-    # łuki diagramu: krzywa cięta w miejscach przejść dołem
+    # diagram arcs: the curve cut at the undercrossings
     unders = sorted(range(m), key=lambda k: cr[k][2] + cr[k][3])
     pos_u = [cr[k][2] + cr[k][3] for k in unders]
     rows = []
@@ -122,14 +122,14 @@ def diagram(P, seed):
 
 
 def determinant(P, seed=0):
-    """Wyznacznik węzła |Δ(−1)|, liczony numerycznie (szybki test: ≠ 1 => węzeł)."""
+    """Knot determinant |Δ(−1)|, computed numerically (quick test: ≠ 1 => knotted)."""
     rows = diagram(P, seed)
     m = len(rows)
     if m < 3:
         return 1
     M = np.zeros((m, m))
     for i_in, j_out, over, s in rows:
-        tt = -1.0                              # t = −1 (także 1/t = −1)
+        tt = -1.0                              # t = −1 (also 1/t = −1)
         M[i_in, i_in] += tt
         M[i_in, j_out] += -1
         M[i_in, over] += 1 - tt
@@ -137,7 +137,7 @@ def determinant(P, seed=0):
 
 
 def alexander(P, seed):
-    """Wielomian Alexandera zamkniętej łamanej P w losowym rzucie."""
+    """Alexander polynomial of the closed polyline P in a random projection."""
     rows = diagram(P, seed)
     m = len(rows)
     if m == 0:
@@ -146,8 +146,8 @@ def alexander(P, seed):
     M = sp.zeros(m, m)
     for i_in, j_out, over, s in rows:
         tt = T if s > 0 else 1 / T
-        M[i_in, i_in] += tt                    # łuk kończący się w tym skrzyżowaniu
-        M[i_in, j_out] += -1                   # łuk zaczynający się za nim
+        M[i_in, i_in] += tt                    # arc ending at this crossing
+        M[i_in, j_out] += -1                   # arc starting after it
         M[i_in, over] += 1 - tt
     D = sp.factor(sp.simplify(M[1:, 1:].det()))
     coeffs = sp.Poly(sp.numer(sp.together(D)), T).all_coeffs()
@@ -160,8 +160,8 @@ def alexander(P, seed):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Typ węzła drogi przez labirynt Maze³")
-    ap.add_argument("paths", help="plik ze ścieżkami labiryntu")
+    ap = argparse.ArgumentParser(description="Knot type of the route through a Maze³ maze")
+    ap.add_argument("paths", help="maze path file")
     ap.add_argument("--size", nargs=3, type=int, metavar=("NX", "NY", "NZ"))
     ap.add_argument("--projections", type=int, default=4)
     args = ap.parse_args()
@@ -169,18 +169,18 @@ def main():
     paths = mc.load_paths(args.paths)
     mc.configure(paths, args.size)
     route = solution_path(paths)
-    print(f"droga: {len(route) - 2} komórek, od {tuple(map(int, route[0]))} do {tuple(map(int, route[-1]))}")
+    print(f"route: {len(route) - 2} cells, from {tuple(map(int, route[0]))} to {tuple(map(int, route[-1]))}")
     P = close_outside(route)
     results = set()
     for seed in range(args.projections):
         poly, m = alexander(P, seed)
         results.add(str(poly))
-        print(f"rzut {seed}: skrzyżowań {m:3d}  Δ(t) = {poly}   |Δ(−1)| = {abs(poly.subs('t', -1))}")
+        print(f"projection {seed}: crossings {m:3d}  Δ(t) = {poly}   |Δ(−1)| = {abs(poly.subs('t', -1))}")
     if len(results) == 1:
         key = results.pop()
-        print("wynik:", KNOWN.get(key, f"Δ(t) = {key} — sprawdź w tabeli węzłów"))
+        print("result:", KNOWN.get(key, f"Δ(t) = {key} — look it up in a knot table"))
     else:
-        print("UWAGA: rzuty dały różne wyniki — błąd w obliczeniach")
+        print("WARNING: projections gave different results — computation error")
 
 
 if __name__ == "__main__":

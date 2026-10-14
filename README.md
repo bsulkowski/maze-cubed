@@ -68,8 +68,12 @@ it with an arc outside the cube is unambiguous and the loop has a
 well-defined knot type. `tools/knot.py` finds the route, closes it, and
 computes the Alexander polynomial in several random projections:
 
-```sh
-python tools/knot.py mazes/lab4_1.txt     # → trójlistnik (3₁), i.e. trefoil
+```
+$ python tools/knot.py mazes/lab4_1.txt
+route: 39 cells, from (2, 3, 0) to (3, 3, 5)
+projection 0: crossings   9  Δ(t) = t**2 - t + 1   |Δ(−1)| = 3
+...
+result: trefoil (3₁)
 ```
 
 A flat maze can't do this: a curve needs three dimensions to be knotted.
@@ -88,8 +92,6 @@ python tools/preview.py models/lab4_1.stl --paths mazes/lab4_1.txt -o images/lab
 
 The generator also checks the maze itself: whether it covers every cell,
 whether it is connected and loop-free, and how many exits it has.
-
-Code comments and console messages are in Polish.
 
 ### Path file format
 
@@ -178,3 +180,8 @@ its small multiples never cancel out with round dimensions.
 | `tools/random_maze.py` | random maze in the path file format |
 | `tools/preview.py`, `tools/render.py` | PNG previews |
 | `images/` | previews |
+| `LICENSE` | MIT licence |
+
+## Licence
+
+[MIT](LICENSE) — covers the code and the generated models.

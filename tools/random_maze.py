@@ -1,22 +1,22 @@
-"""Losowy labirynt Maze³ w formacie pliku ze ścieżkami.
+"""Random Maze³ maze in the path file format.
 
-Labirynt doskonały (drzewo rozpinające: każda komórka osiągalna, bez
-pętli) z dwoma wyjściami na zewnątrz. Spośród wielu losowań wybierany jest
-układ, który najlepiej spełnia kryteria:
-- droga od wejścia do wyjścia idzie we wszystkich sześciu kierunkach
-  (trzeba obracać kostkę na wszystkie strony),
-- długość drogi w zadanym zakresie,
-- ślepe zaułki raczej dłuższe niż jednokomórkowe,
-- wejście i wyjście na przeciwległych ściankach,
-- opcjonalnie: droga zawiązana (lub nie) w węzeł. Losowe drzewo prawie
-  nigdy nie zawiązuje drogi, więc w trybie --knot knotted kolejność jest
-  odwrócona: losowa ścieżka Hamiltona (wężyk mieszany ruchami „backbite”)
-  jest silnie splątana; jej odcinek między przeciwległymi ściankami
-  o wyznaczniku węzła różnym od 1 staje się drogą, a drzewo wyrasta z niej.
+A perfect maze (a spanning tree: every cell reachable, no loops) with two
+exits to the outside. Out of many random draws, the layout that best fits
+the criteria is chosen:
+- the route from entrance to exit goes in all six directions
+  (you have to turn the cube every way),
+- the route length is within a given range,
+- dead ends are longer rather than single cells,
+- entrance and exit are on opposite faces,
+- optionally: the route is (or isn't) knotted. A random tree practically
+  never knots its route, so in --knot knotted mode the order is reversed:
+  a random Hamiltonian path (a snake shuffled with "backbite" moves) is
+  strongly tangled; a segment of it between opposite faces whose knot
+  determinant isn't 1 becomes the route, and the tree grows from it.
 
-Wynik zawsze odtwarzalny dla danego --seed.
+The result is always reproducible for a given --seed.
 
-Użycie:
+Usage:
     python tools/random_maze.py --size 3 3 3 --seed 1 --knot unknot -o mazes/lab3_1.txt
 """
 import argparse
@@ -37,8 +37,8 @@ def add(a, d):
 
 
 def wilson_tree(cells, rng, route=None):
-    """Jednostajnie losowe drzewo rozpinające (algorytm Wilsona); jeśli podano
-    drogę (listę sąsiednich komórek), drzewo wyrasta z niej."""
+    """Uniform random spanning tree (Wilson's algorithm); if a route (a list
+    of adjacent cells) is given, the tree grows from it."""
     cells = list(cells)
     adj = {x: set() for x in cells}
     if route:
@@ -52,7 +52,7 @@ def wilson_tree(cells, rng, route=None):
     for start in cells:
         if start in in_tree:
             continue
-        walk = {}                       # błądzenie losowe z wymazywaniem pętli
+        walk = {}                       # loop-erased random walk
         x = start
         while x not in in_tree:
             nbrs = [add(x, d) for d in DIRS if add(x, d) in cellset]
@@ -83,7 +83,7 @@ def tree_path(adj, a, b):
 
 
 def snake(N):
-    """Ścieżka Hamiltona przez wszystkie komórki (wężyk) — punkt startowy."""
+    """Hamiltonian path through all cells (a snake) — the starting point."""
     nx, ny, nz = N
     path = []
     for z in range(1, nz + 1):
@@ -96,8 +96,8 @@ def snake(N):
 
 
 def backbite(path, N, rng, steps):
-    """Ruchy „backbite”: losowe przekształcenia ścieżki Hamiltona, które
-    zachowują jej własność i z czasem silnie ją mieszają."""
+    """"Backbite" moves: random transformations of a Hamiltonian path that
+    keep it Hamiltonian and, over time, shuffle it thoroughly."""
     inside = lambda x: all(1 <= v <= n for v, n in zip(x, N))
     pos = {x: i for i, x in enumerate(path)}
     for _ in range(steps):
@@ -116,7 +116,7 @@ def backbite(path, N, rng, steps):
 
 
 def knotted_routes(path, N, rng, args, samples):
-    """Losowe odcinki ścieżki Hamiltona jako drogi od wejścia do wyjścia."""
+    """Random segments of the Hamiltonian path as entrance-to-exit routes."""
     inside = lambda x: all(1 <= v <= n for v, n in zip(x, N))
     total = len(path)
     lo, hi = int(args.min_len * total), int(args.max_len * total)
@@ -135,7 +135,7 @@ def knotted_routes(path, N, rng, args, samples):
 
 
 def boundary_exits(N):
-    """(komórka brzegowa, komórka zewnętrzna) dla każdej ścianki na zewnątrz."""
+    """(boundary cell, outside cell) for every wall facing the outside."""
     out = []
     for cell in itertools.product(*[range(1, n + 1) for n in N]):
         for d in DIRS:
@@ -146,8 +146,8 @@ def boundary_exits(N):
 
 
 def to_paths(adj, route):
-    """Zapis w formacie pliku: najpierw droga, potem odgałęzienia, każde
-    zaczynające się w komórce już odwiedzonej; najdłuższe gałęzie najpierw."""
+    """Path file layout: the route first, then the branches, each starting
+    from an already visited cell; longest branches first."""
     visited = set(route)
     paths = [list(route)]
     queue = [x for x in route if x in adj]
@@ -157,7 +157,7 @@ def to_paths(adj, route):
             if y in visited:
                 continue
             branch, prev, cur = [x], x, y
-            while True:                 # idź najdłuższą gałęzią do liścia
+            while True:                 # follow the longest branch to a leaf
                 branch.append(cur)
                 visited.add(cur)
                 nxt = [z for z in adj[cur] if z != prev and z not in visited]
@@ -175,7 +175,7 @@ def depth(adj, x, parent):
 
 
 def dead_ends(adj, route):
-    """Długości ślepych zaułków (gałęzi odchodzących od drogi)."""
+    """Lengths of the dead ends (branches leaving the route)."""
     on = set(route)
     return [depth(adj, y, x) for x in route if x in adj for y in adj[x] if y not in on]
 
@@ -199,21 +199,21 @@ def score(adj, route, N, args):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Losowy labirynt Maze³")
+    ap = argparse.ArgumentParser(description="Random Maze³ maze")
     ap.add_argument("--size", nargs=3, type=int, default=[3, 3, 3], metavar=("NX", "NY", "NZ"))
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--tries", type=int, default=3000)
-    ap.add_argument("--min-len", type=float, default=0.4, help="min. długość drogi (ułamek komórek)")
-    ap.add_argument("--max-len", type=float, default=0.65, help="maks. długość drogi (ułamek komórek)")
+    ap.add_argument("--min-len", type=float, default=0.4, help="min. route length (fraction of cells)")
+    ap.add_argument("--max-len", type=float, default=0.65, help="max. route length (fraction of cells)")
     ap.add_argument("--opposite", action=argparse.BooleanOptionalAction, default=True,
-                    help="wejście i wyjście na przeciwległych ściankach")
+                    help="entrance and exit on opposite faces")
     ap.add_argument("--knot", choices=["any", "unknot", "knotted"], default="any",
-                    help="knotted: najpierw losowana jest zawiązana droga, potem reszta drzewa")
+                    help="knotted: a knotted route is drawn first, then the rest of the tree")
     ap.add_argument("--det", type=int, default=None,
-                    help="(knotted) wymagany wyznacznik węzła, np. 3 = trójlistnik, 5 = ósemka")
+                    help="(knotted) required knot determinant, e.g. 3 = trefoil, 5 = figure-eight")
     ap.add_argument("--mix", type=int, default=400,
-                    help="(knotted) ruchów mieszających ścieżkę Hamiltona między próbami")
-    ap.add_argument("--name", default=None, help="nazwa zmiennej w pliku")
+                    help="(knotted) shuffling moves of the Hamiltonian path between tries")
+    ap.add_argument("--name", default=None, help="variable name in the file")
     ap.add_argument("-o", "--out", required=True)
     args = ap.parse_args()
 
@@ -236,7 +236,7 @@ def main():
                     continue
                 det = knot.determinant(knot.close_outside([np.array(x, float) for x in route]))
                 if det != 1 and (args.det is None or det == args.det):
-                    found = route            # wyznacznik ≠ 1: na pewno węzeł
+                    found = route            # determinant ≠ 1: certainly knotted
                     break
             if not found:
                 continue
@@ -257,7 +257,7 @@ def main():
                 continue
         best = (s, adj, route)
     if not best:
-        sys.exit("nie znaleziono układu spełniającego kryteria")
+        sys.exit("no layout meeting the criteria was found")
     _, adj, route = best
     adj = {k: set(v) for k, v in adj.items()}
     adj.setdefault(route[0], set()).add(route[1]); adj[route[1]].add(route[0])
@@ -273,9 +273,9 @@ def main():
     with open(args.out, "w") as f:
         f.write("\n".join(lines))
     de = dead_ends(adj, route)
-    print(f"zapisano: {args.out}")
-    print(f"droga: {len(route) - 2} z {len(cells)} komórek, od {route[0]} do {route[-1]}")
-    print(f"ślepe zaułki (długości): {sorted(de, reverse=True)}")
+    print(f"saved: {args.out}")
+    print(f"route: {len(route) - 2} of {len(cells)} cells, from {route[0]} to {route[-1]}")
+    print(f"dead ends (lengths): {sorted(de, reverse=True)}")
 
 
 if __name__ == "__main__":

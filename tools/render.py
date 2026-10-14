@@ -1,4 +1,4 @@
-"""Prosty renderer z-bufora (numpy) do podglądu siatki STL."""
+"""Simple z-buffer renderer (numpy) for previewing an STL mesh."""
 import sys
 import numpy as np
 import trimesh
@@ -7,7 +7,7 @@ from PIL import Image
 
 def look(el, az):
     el, az = np.radians(el), np.radians(az)
-    d = np.array([np.cos(el) * np.cos(az), np.cos(el) * np.sin(az), np.sin(el)])  # kierunek do kamery
+    d = np.array([np.cos(el) * np.cos(az), np.cos(el) * np.sin(az), np.sin(el)])  # direction towards the camera
     right = np.cross([0, 0, 1], d); right /= np.linalg.norm(right)
     up = np.cross(d, right)
     return np.stack([right, up, d])
@@ -32,7 +32,7 @@ def render(mesh, el, az, size=600, center=None, span=None, colors=None):
     for f, sh, col in zip(mesh.faces, shade, cols):
         a, b, c = xy[f]
         if (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]) >= 0:
-            continue  # tylna ściana
+            continue  # back face
         x0, x1 = int(max(min(a[0], b[0], c[0]), 0)), int(min(max(a[0], b[0], c[0]) + 1, size))
         y0, y1 = int(max(min(a[1], b[1], c[1]), 0)), int(min(max(a[1], b[1], c[1]) + 1, size))
         if x0 >= x1 or y0 >= y1:
@@ -59,5 +59,5 @@ if __name__ == "__main__":
     a = render(mesh, 25, -55)
     b = render(mesh, 55, 25)
     corner = mesh.bounds[1] - 3.0
-    c = render(mesh, 30, 30, center=corner, span=12)  # zbliżenie górnego narożnika
+    c = render(mesh, 30, 30, center=corner, span=12)  # close-up of the top corner
     Image.fromarray(np.hstack([a, b, c])).save(out)

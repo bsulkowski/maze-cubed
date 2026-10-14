@@ -69,9 +69,15 @@ domknięcie jej łukiem poza kostką jest jednoznaczne, a powstała pętla ma
 dobrze określony typ węzła. `tools/knot.py` znajduje drogę, domyka ją
 i liczy wielomian Alexandera w kilku losowych rzutach:
 
-```sh
-python tools/knot.py mazes/lab4_1.txt     # → trójlistnik (3₁)
 ```
+$ python tools/knot.py mazes/lab4_1.txt
+route: 39 cells, from (2, 3, 0) to (3, 3, 5)
+projection 0: crossings   9  Δ(t) = t**2 - t + 1   |Δ(−1)| = 3
+...
+result: trefoil (3₁)
+```
+
+(Komunikaty skryptów i komentarze w kodzie są po angielsku.)
 
 Płaski labirynt tego nie potrafi: żeby krzywa była zawiązana, potrzebne
 są trzy wymiary.
@@ -183,3 +189,8 @@ znosiły się z okrągłymi wymiarami.
 | `tools/random_maze.py` | losowy labirynt w formacie pliku ze ścieżkami |
 | `tools/preview.py`, `tools/render.py` | podglądy PNG |
 | `images/` | podglądy |
+| `LICENSE` | licencja MIT |
+
+## Licencja
+
+[MIT](LICENSE) — obejmuje kod i wygenerowane modele.

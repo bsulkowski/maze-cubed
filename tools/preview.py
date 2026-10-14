@@ -1,6 +1,6 @@
-"""Podglądy PNG modeli Maze³ (renderer programowy, bez zależności od GPU).
+"""PNG previews of Maze³ models (software renderer, no GPU needed).
 
-Użycie:
+Usage:
     python tools/preview.py models/lab4_1.stl --paths mazes/lab4_1.txt -o images/lab4_1.png
     python tools/preview.py models/lab4_1.stl --cell 2 3 4 -o images/cell.png
     python tools/preview.py models/ball_10mm.stl --ball -o images/ball.png
@@ -36,7 +36,7 @@ def path_tubes(paths):
 
 
 def crop_cell(mesh, cell):
-    """Wycina jedną komórkę (współrzędne 1..N) z modelu."""
+    """Cut a single cell (coordinates 1..N) out of the model."""
     M = m3d.Manifold(m3d.Mesh(vert_properties=np.asarray(mesh.vertices, np.float32),
                               tri_verts=np.asarray(mesh.faces, np.uint32)))
     lo = (np.array(cell) - 1) * mc.EDGE + mc.h - 1.2
@@ -46,13 +46,13 @@ def crop_cell(mesh, cell):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Podgląd PNG modelu Maze³")
+    ap = argparse.ArgumentParser(description="PNG preview of a Maze³ model")
     ap.add_argument("model")
     ap.add_argument("-o", "--out", required=True)
-    ap.add_argument("--paths", help="nałóż ścieżki labiryntu z pliku")
-    ap.add_argument("--cell", nargs=3, type=int, help="pokaż jedną komórkę (współrzędne 1..N)")
-    ap.add_argument("--ball", action="store_true", help="koloruj pięciokąty na czarno")
-    ap.add_argument("--size", type=int, default=700, help="bok jednego panelu w pikselach")
+    ap.add_argument("--paths", help="overlay the maze paths from a file")
+    ap.add_argument("--cell", nargs=3, type=int, help="show a single cell (coordinates 1..N)")
+    ap.add_argument("--ball", action="store_true", help="colour the pentagons black")
+    ap.add_argument("--size", type=int, default=700, help="side of one panel in pixels")
     args = ap.parse_args()
 
     m = trimesh.load(args.model)
@@ -80,7 +80,7 @@ def main():
         panels = [render(m, 25, -55, size=S), render(m, -35, -55, size=S)]
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     Image.fromarray(np.hstack(panels)).save(args.out)
-    print("zapisano:", args.out)
+    print("saved:", args.out)
 
 
 if __name__ == "__main__":
