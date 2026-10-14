@@ -57,10 +57,11 @@ a potem przechylaj, obracaj i przewracaj kostkę, aż wypadnie drugim.
 
 ![Piłka](images/ball.png)
 
-`ball.py` tworzy dwudziestościan ścięty (piłkę nożną) o średnicy 10 mm,
-drukowany na sześciokątnej ściance. Rozsądny zakres to 8–10 mm: mniejsza
-kulka klinuje się w okienkach kratek (4,8 mm), a przejścia przepuszczają
-do ok. 16,5 mm. Pasuje też kulka łożyskowa albo koralik.
+`ball.py` tworzy ośmiościan ścięty wycięty z sześcianu o boku 16 mm:
+krawędzie i narożniki sześcianu ścięte, zostaje 6 kwadratów i 8
+sześciokątów. Drukuje się na kwadratowej ściance bez podpór i dobrze się
+toczy. Najlepiej działa kulka 15–17 mm; 10 mm to zdecydowanie za mało.
+Wielkość sześcianu ustawia `--cube`.
 
 ## Węzeł
 
@@ -89,7 +90,7 @@ pip install -r requirements.txt
 
 python maze_cubed.py mazes/lab4_1.txt     # labirynt → models/lab4_1.stl, .3mf
 python maze_cubed.py --size 4 4 4         # pełna kratownica bez przejść
-python ball.py                            # piłka → models/ball_10mm.stl, .3mf
+python ball.py                            # piłka → models/ball_16mm.stl, .3mf
 python tools/knot.py mazes/lab4_1.txt     # typ węzła drogi
 python tools/preview.py models/lab4_1.stl --paths mazes/lab4_1.txt -o images/lab4_1.png
 ```

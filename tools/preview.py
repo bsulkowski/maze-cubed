@@ -3,7 +3,7 @@
 Usage:
     python tools/preview.py models/lab4_1.stl --paths mazes/lab4_1.txt -o images/lab4_1.png
     python tools/preview.py models/lab4_1.stl --cell 2 3 4 -o images/cell.png
-    python tools/preview.py models/ball_10mm.stl --ball -o images/ball.png
+    python tools/preview.py models/ball_16mm.stl --ball -o images/ball.png
 """
 import argparse
 import os
@@ -51,7 +51,7 @@ def main():
     ap.add_argument("-o", "--out", required=True)
     ap.add_argument("--paths", help="overlay the maze paths from a file")
     ap.add_argument("--cell", nargs=3, type=int, help="show a single cell (coordinates 1..N)")
-    ap.add_argument("--ball", action="store_true", help="colour the pentagons black")
+    ap.add_argument("--ball", action="store_true", help="ball: colour the smallest faces (squares) dark")
     ap.add_argument("--size", type=int, default=700, help="side of one panel in pixels")
     args = ap.parse_args()
 
@@ -59,8 +59,9 @@ def main():
     S = args.size
     if args.ball:
         cols = np.tile([0.92, 0.92, 0.92], (len(m.faces), 1))
-        for f in m.facets:
-            if len(np.unique(m.faces[f])) == 5:
+        nverts = [len(np.unique(m.faces[f])) for f in m.facets]
+        for f, k in zip(m.facets, nverts):
+            if k == min(nverts):
                 cols[f] = [0.12, 0.12, 0.12]
         panels = [render(m, 25, -55, size=S, colors=cols), render(m, -60, 30, size=S, colors=cols)]
     elif args.cell:

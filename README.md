@@ -56,10 +56,10 @@ one, then tilt, turn and flip the cube until it comes out of the other.
 
 ![Ball](images/ball.png)
 
-`ball.py` makes a truncated icosahedron (a football) of 10 mm diameter,
-printed on a hexagonal face. A good range is 8–10 mm: a smaller ball gets
-stuck in the 4.8 mm windows of the wall grids, while the passages let
-through up to about 16.5 mm. A steel ball bearing or a bead works too.
+`ball.py` makes a truncated octahedron cut from a 16 mm cube: the cube's
+edges and corners cut away, leaving 6 squares and 8 hexagons. It prints on
+a square face without supports and rolls well. A ball of 15–17 mm works
+best; 10 mm is clearly too small. The cube size is set with `--cube`.
 
 ## The knot
 
@@ -85,7 +85,7 @@ pip install -r requirements.txt
 
 python maze_cubed.py mazes/lab4_1.txt     # maze → models/lab4_1.stl, .3mf
 python maze_cubed.py --size 4 4 4         # full lattice, no passages
-python ball.py                            # ball → models/ball_10mm.stl, .3mf
+python ball.py                            # ball → models/ball_16mm.stl, .3mf
 python tools/knot.py mazes/lab4_1.txt     # knot type of the route
 python tools/preview.py models/lab4_1.stl --paths mazes/lab4_1.txt -o images/lab4_1.png
 ```
