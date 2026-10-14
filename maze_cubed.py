@@ -12,7 +12,9 @@ Konstrukcja:
   wyśrodkowana w płaszczyźnie osi prętów;
 - w każdej komórce 4 wsporniki pod skrzyżowaniami szprosów sufitu,
   w rzucie biegnące po przekątnej do najbliższego narożnego pręta
-  pionowego, zaczepione na wysokości górnej linii szprosów;
+  pionowego, zaczepione na wysokości górnej linii szprosów obniżonej
+  o pół pręta; przekrój poziomy kwadratowy, na poziomie mostu dokładnie
+  pod skrzyżowaniem szprosów;
 - pod każdą poziomą ścianką: podpórka — ramka środkowego okienka sięgająca
   w dół do poziomu spodu prętów (o grubość fazki pod szprosy); na dolnej
   ściance kostki opiera się o stół;
@@ -20,6 +22,8 @@ Konstrukcja:
   otwarta (bez szprosów). Wsporniki komórki znikają tylko wtedy, gdy
   otwarty jest jej sufit. Nad otwartą ścianką boczną górny pręt dostaje
   dwa zastrzały 45° od prętów pionowych (w płaszczyźnie ścianki).
+
+Komentarze w kodzie są po polsku; opis projektu po angielsku: README.md.
 
 Wymiar EDGE to rozstaw osi prętów (bok komórki). Zewnętrzny wymiar
 bryły to N * EDGE + ROD.
@@ -40,9 +44,9 @@ import numpy as np
 import trimesh
 
 EDGE = 20.0      # mm, bok komórki (oś do osi)
-ROD = 2.0        # mm, bok kwadratowego przekroju pręta
-CHAMFER = 0.5    # mm, ścięcie kantów (fazka 45°)
-MUNTIN = 1.0     # mm, bok kwadratowego przekroju szprosu
+ROD = 2.4        # mm, bok kwadratowego przekroju pręta (6 linii dyszy 0,4 mm)
+CHAMFER = 0.4    # mm, ścięcie kantów (fazka 45°)
+MUNTIN = 1.6     # mm, bok kwadratowego przekroju szprosu (4 linie dyszy 0,4 mm)
 DIVS = 3         # na ile części szprosy dzielą okno w każdym kierunku
 EPS = 0.0047     # mm, mikro-odsunięcia, dzięki którym ścianki różnych elementów
                  # nigdy nie są współpłaszczyznowe (siatka wychodzi czysta);
