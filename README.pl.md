@@ -33,10 +33,10 @@ droga. Gotowe pliki STL i 3MF są w `models/`.
 
 ## Jak grać
 
-Wrzuć kulkę do wejścia — w `lab2_1`, `lab3_1` i `lab4_1` to otwór
-w dolnej ściance, a wyjście jest na górze; w `lab345_1` oba otwory są na
-przeciwległych dużych bokach 4×5. Przechylaj, obracaj i przewracaj kostkę,
-aż kulka wypadnie wyjściem.
+Każdy labirynt ma dwa otwory na zewnątrz — w `lab2_1`, `lab3_1` i `lab4_1`
+jeden w dolnej ściance, drugi na górze, w `lab345_1` po jednym na każdym
+z dużych boków 4×5. Każdy z nich może być wejściem: wrzuć kulkę do jednego,
+a potem przechylaj, obracaj i przewracaj kostkę, aż wypadnie drugim.
 
 ## Druk
 

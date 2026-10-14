@@ -32,10 +32,10 @@ Ready-to-print STL and 3MF files are in `models/`.
 
 ## How to play
 
-Drop the ball into the entrance — in `lab2_1`, `lab3_1` and `lab4_1` it
-is the opening in the bottom face and the exit is on top; in `lab345_1`
-the two openings are on the opposite large 4×5 sides. Tilt, turn and flip
-the cube until the ball comes out of the exit.
+Every maze has two openings to the outside — in `lab2_1`, `lab3_1` and
+`lab4_1` one in the bottom face and one on top, in `lab345_1` one on each
+of the large 4×5 sides. Either can be the entrance: drop the ball into
+one, then tilt, turn and flip the cube until it comes out of the other.
 
 ## Printing
 
