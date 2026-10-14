@@ -60,7 +60,7 @@ a potem przechylaj, obracaj i przewracaj kostkę, aż wypadnie drugim.
 `ball.py` tworzy ośmiościan ścięty wycięty z sześcianu o boku 16 mm:
 krawędzie i narożniki sześcianu ścięte, zostaje 6 kwadratów i 8
 sześciokątów. Drukuje się na kwadratowej ściance bez podpór i dobrze się
-toczy. Najlepiej działa kulka 15–17 mm; 10 mm to zdecydowanie za mało.
+toczy. Najlepiej działa kulka 15–16 mm; 10 mm to zdecydowanie za mało.
 Wielkość sześcianu ustawia `--cube`.
 
 ## Węzeł

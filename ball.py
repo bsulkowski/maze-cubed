@@ -9,7 +9,7 @@ vertical and the hexagons are about 55° from horizontal.
 
 Size: the cube side is the width across opposite squares (16 mm by default);
 across opposite hexagons it is √3/2 ≈ 0.87 of that, corner to corner
-√5/2 ≈ 1.12. A ball of 15–17 mm works best in the default mazes.
+√5/2 ≈ 1.12. A ball of 15–16 mm works best in the default mazes.
 
 Usage:
     python ball.py              # cut from a 16 mm cube
