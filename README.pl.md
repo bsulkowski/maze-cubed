@@ -20,6 +20,8 @@ trójlistnik.
 |---|---|---|---|---|---|
 | `lab2_1` | 2×2×2, 42 mm, ~13 g | 8 z 8 komórek | 0 | — | tylko do testów druku |
 | `lab3_1` | 3×3×3, 62 mm, ~35 g | 14 z 27 komórek | 5 | — | rozgrzewka |
+| `lab334_1` | 3×3×4, 62×62×82 mm, ~46 g | 19 z 36 komórek | 6 | — | krok wyżej |
+| `lab344_1` | 3×4×4, 62×82×82 mm, ~60 g | 21 z 48 komórek | 8 | — | długie ślepe zaułki |
 | `lab4_1` | 4×4×4, 82 mm, ~77 g | 39 z 64 komórek | 9 | trójlistnik | główne wyzwanie |
 | `lab345_1` | 3×4×5, 62×82×102 mm, ~73 g | 39 z 60 komórek | 9 | trójlistnik | różne boki ułatwiają orientację |
 
@@ -34,8 +36,9 @@ droga. Gotowe pliki STL i 3MF są w `models/`.
 ## Jak grać
 
 Każdy labirynt ma dwa otwory na zewnątrz — w `lab2_1`, `lab3_1` i `lab4_1`
-jeden w dolnej ściance, drugi na górze, w `lab345_1` po jednym na każdym
-z dużych boków 4×5. Każdy z nich może być wejściem: wrzuć kulkę do jednego,
+jeden w dolnej ściance, drugi na górze, w `lab334_1` i `lab344_1` po jednym
+na przeciwległych bokach 3×4, w `lab345_1` po jednym na każdym z dużych
+boków 4×5. Każdy z nich może być wejściem: wrzuć kulkę do jednego,
 a potem przechylaj, obracaj i przewracaj kostkę, aż wypadnie drugim.
 
 ## Druk
@@ -130,6 +133,8 @@ daje ten sam labirynt.
 ```sh
 python tools/random_maze.py --size 2 2 2 --seed 3 --min-len 0.5 --max-len 1 -o mazes/lab2_1.txt
 python tools/random_maze.py --size 3 3 3 --seed 1 --knot unknot -o mazes/lab3_1.txt
+python tools/random_maze.py --size 3 3 4 --seed 5 -o mazes/lab334_1.txt
+python tools/random_maze.py --size 3 4 4 --seed 1 -o mazes/lab344_1.txt
 python tools/random_maze.py --size 3 4 5 --seed 1 --tries 300 --knot knotted -o mazes/lab345_1.txt
 ```
 
@@ -140,8 +145,8 @@ wycina z niej odcinek między przeciwległymi ściankami o wyznaczniku węzła
 różnym od 1 i dopiero wokół niego wyprowadza resztę labiryntu. `--det 5`
 wymaga ósemki, ale przy tym rozmiarze praktycznie się nie trafia.
 
-`lab4_1` to układ oryginalny; `lab2_1`, `lab3_1` i `lab345_1` powstały
-z powyższych poleceń.
+`lab4_1` to układ oryginalny; `lab2_1`, `lab3_1`, `lab334_1`, `lab344_1`
+i `lab345_1` powstały z powyższych poleceń.
 
 ### Konstrukcja
 

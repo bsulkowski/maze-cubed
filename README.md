@@ -19,6 +19,8 @@ a trefoil.
 |---|---|---|---|---|---|
 | `lab2_1` | 2×2×2, 42 mm, ~13 g | 8 of 8 cells | 0 | — | print test only |
 | `lab3_1` | 3×3×3, 62 mm, ~35 g | 14 of 27 cells | 5 | — | warm-up |
+| `lab334_1` | 3×3×4, 62×62×82 mm, ~46 g | 19 of 36 cells | 6 | — | a step up |
+| `lab344_1` | 3×4×4, 62×82×82 mm, ~60 g | 21 of 48 cells | 8 | — | long dead ends |
 | `lab4_1` | 4×4×4, 82 mm, ~77 g | 39 of 64 cells | 9 | trefoil | the main challenge |
 | `lab345_1` | 3×4×5, 62×82×102 mm, ~73 g | 39 of 60 cells | 9 | trefoil | unequal sides help orientation |
 
@@ -33,8 +35,9 @@ Ready-to-print STL and 3MF files are in `models/`.
 ## How to play
 
 Every maze has two openings to the outside — in `lab2_1`, `lab3_1` and
-`lab4_1` one in the bottom face and one on top, in `lab345_1` one on each
-of the large 4×5 sides. Either can be the entrance: drop the ball into
+`lab4_1` one in the bottom face and one on top, in `lab334_1` and
+`lab344_1` one on each of the opposite 3×4 sides, in `lab345_1` one on
+each of the large 4×5 sides. Either can be the entrance: drop the ball into
 one, then tilt, turn and flip the cube until it comes out of the other.
 
 ## Printing
@@ -123,6 +126,8 @@ knotted. A given `--seed` always produces the same maze.
 ```sh
 python tools/random_maze.py --size 2 2 2 --seed 3 --min-len 0.5 --max-len 1 -o mazes/lab2_1.txt
 python tools/random_maze.py --size 3 3 3 --seed 1 --knot unknot -o mazes/lab3_1.txt
+python tools/random_maze.py --size 3 3 4 --seed 5 -o mazes/lab334_1.txt
+python tools/random_maze.py --size 3 4 4 --seed 1 -o mazes/lab344_1.txt
 python tools/random_maze.py --size 3 4 5 --seed 1 --tries 300 --knot knotted -o mazes/lab345_1.txt
 ```
 
@@ -134,8 +139,8 @@ whose knot determinant isn't 1, and only then grows the rest of the maze
 around it. `--det 5` asks for a figure-eight knot, but at this size it
 practically never comes up.
 
-`lab4_1` is the original layout; `lab2_1`, `lab3_1` and `lab345_1` were
-generated with the commands above.
+`lab4_1` is the original layout; `lab2_1`, `lab3_1`, `lab334_1`,
+`lab344_1` and `lab345_1` were generated with the commands above.
 
 ### Construction
 
