@@ -11,14 +11,23 @@ Size: the cube side is the width across opposite squares (16 mm by default);
 across opposite hexagons it is √3/2 ≈ 0.87 of that, corner to corner
 √5/2 ≈ 1.12. A ball of 15–16 mm works best in the default mazes.
 
+Optional "Ariadne's thread" hole (--hole): straight through the centre,
+between two opposite squares, so a thread or tape can be pulled through the
+ball and trace its way through the maze. The hole is octagonal — a square
+with cut corners in the same proportion as the lattice bars (chamfer = 1/6
+of the width) — and its flats are parallel to the edges of the square
+faces. It runs vertically when printed, so it needs no supports.
+
 Usage:
     python ball.py              # cut from a 16 mm cube
     python ball.py --cube 15
+    python ball.py --cube 20 --hole 5
 """
 import argparse
 import itertools
 import os
 
+import manifold3d as m3d
 import numpy as np
 import trimesh
 
@@ -35,26 +44,52 @@ def truncated_octahedron(cube):
     return trimesh.convex.convex_hull(V)
 
 
+def drill(ball, width):
+    """Octagonal through hole along Z (between two square faces), `width`
+    across flats, corners cut by width/6, flats parallel to the square
+    faces' edges (i.e. turned 45° to the axes of the cube)."""
+    hw, c = width / 2, width / 6
+    octagon = [(-hw + c, -hw), (hw - c, -hw), (hw, -hw + c), (hw, hw - c),
+               (hw - c, hw), (-hw + c, hw), (-hw, hw - c), (-hw, -hw + c)]
+    zmin, zmax = ball.bounds[:, 2]
+    hole = (m3d.Manifold.extrude(m3d.CrossSection([octagon]), zmax - zmin + 2)
+            .translate([0, 0, zmin - 1]).rotate([0, 0, 45]))
+    solid = m3d.Manifold(m3d.Mesh(vert_properties=np.asarray(ball.vertices, np.float32),
+                                  tri_verts=np.asarray(ball.faces, np.uint32)))
+    out = (solid - hole).to_mesh()
+    return trimesh.Trimesh(vertices=out.vert_properties[:, :3], faces=out.tri_verts)
+
+
 def main():
     ap = argparse.ArgumentParser(description="Ball for the Maze³ mazes")
     ap.add_argument("--cube", type=float, default=16.0,
                     help="side of the cube it is cut from = width across squares, mm (default 16)")
+    ap.add_argument("--hole", type=float, default=0.0,
+                    help="octagonal through hole for a thread, width across flats, mm (default: none)")
     ap.add_argument("--out", default="models")
     args = ap.parse_args()
 
     ball = truncated_octahedron(args.cube)
     sizes = [len(np.unique(ball.faces[f])) for f in ball.facets]
     assert sizes.count(4) == 6 and sizes.count(6) == 8, sizes
+    counts = f"squares: {sizes.count(4)} | hexagons: {sizes.count(6)}"
+
+    square_edge = args.cube / 4 * 2 ** 0.5
+    assert args.hole < square_edge, f"hole wider than the square face ({square_edge:.2f} mm)"
+    if args.hole:
+        ball = drill(ball, args.hole)
+        print(f"hole: {args.hole:g} mm across flats | wall at the square face:"
+              f" {(square_edge - args.hole) / 2:.2f} mm")
 
     # already standing on a square face (normal −z); just put it on the bed
     ball.apply_translation(-ball.bounds[0] * [0, 0, 1] - ball.centroid * [1, 1, 0])
 
     e = ball.edges_unique_length
-    print("watertight:", ball.is_watertight, "| squares:", sizes.count(4), "| hexagons:", sizes.count(6))
+    print("watertight:", ball.is_watertight, "|", counts)
     print("edge mm:", round(min(e[e > 1e-6]), 3), "| size mm:", np.round(ball.extents, 2),
           "| corner to corner mm:", round(2 * np.linalg.norm(ball.vertices - ball.centroid, axis=1).max(), 2),
           "| PLA mass ~g:", round(ball.volume / 1000 * 1.24, 2))
-    name = f"ball_{args.cube:g}mm"
+    name = f"ball_{args.cube:g}mm" + (f"_hole{args.hole:g}" if args.hole else "")
     os.makedirs(args.out, exist_ok=True)
     for ext in ("stl", "3mf"):
         ball.export(os.path.join(args.out, f"{name}.{ext}"))
