@@ -265,26 +265,50 @@ def rods_and_nodes():
     return parts
 
 
-def muntins():
+def muntins(sparse=False):
     """One 2D grid per plane, made of the grids of the individual walls
     (except open ones); muntin lines run continuously through the bars.
-    The union is computed in 2D exactly, so no coplanar faces arise."""
+    The union is computed in 2D exactly, so no coplanar faces arise.
+
+    sparse: walls keep only the frame of the middle pane, plus the vertical
+    muntins in vertical walls (they carry the top bar, so bridges stay one
+    third of a cell long). A horizontal wall's middle frame rests on the
+    pad and the ceiling braces below it; on the bottom face of the cube,
+    which has no braces below, it is held by the muntins along one axis."""
     w = w_muntin()
     parts = []
-    cell_grid = m3d.CrossSection()
-    for cc in CENTERS:
-        cell_grid += m3d.CrossSection.square([EDGE, w]).translate([0, cc - w / 2])
-        cell_grid += m3d.CrossSection.square([w, EDGE]).translate([cc - w / 2, 0])
+
+    def lines(along_local_x):
+        g = m3d.CrossSection()
+        for cc in CENTERS:
+            g += (m3d.CrossSection.square([EDGE, w]).translate([0, cc - w / 2]) if along_local_x
+                  else m3d.CrossSection.square([w, EDGE]).translate([cc - w / 2, 0]))
+        return g
+
+    c0, c1 = CENTERS[0], CENTERS[-1]
+    ring = (m3d.CrossSection.square([c1 - c0 + w, c1 - c0 + w]).translate([c0 - w / 2, c0 - w / 2])
+            - m3d.CrossSection.square([c1 - c0 - w, c1 - c0 - w]).translate([c0 + w / 2, c0 + w / 2]))
+    full_grid = lines(True) + lines(False)
+
+    def cell_grid(axis, i):
+        if not sparse:
+            return full_grid
+        if axis == 2:
+            return ring + lines(True) if i == 0 else ring
+        # local x is axis+1, local y is axis+2; Z is local y for axis 0, local x for axis 1
+        return ring + lines(axis == 1)
+
     for axis in range(3):
         a, b = (axis + 1) % 3, (axis + 2) % 3
         for i in range(N[axis] + 1):
             grid = m3d.CrossSection()
+            pattern = cell_grid(axis, i)
             for j in range(N[a]):
                 for k in range(N[b]):
                     t = [0, 0, 0]
                     t[axis], t[a], t[b] = i - 1, j, k
                     if (axis, tuple(t)) not in OPEN:
-                        grid += cell_grid.translate([j * EDGE, k * EDGE])
+                        grid += pattern.translate([j * EDGE, k * EDGE])
             if grid.is_empty():
                 continue
             slab = m3d.Manifold.extrude(grid, w).translate([0, 0, -w / 2])
@@ -394,13 +418,13 @@ def cell_pad():
 set_dims()
 
 
-def build(plate=0.0):
+def build(plate=0.0, sparse=False):
     """Assemble the whole model; return a trimesh standing on the bed (z_min = 0)."""
     plate_parts = plates(plate)
     n_plates = sum(1 for axis, lo in itertools.product(range(3), itertools.product(*[range(-1, n) for n in N]))
                    if 0 <= lo[axis] < N[axis] - 1 and all(0 <= lo[i] < N[i] for i in range(3) if i != axis)
                    and (axis, lo) not in OPEN)
-    parts = rods_and_nodes() + muntins() + plate_parts
+    parts = rods_and_nodes() + muntins(sparse) + plate_parts
     braces, n_braces = cell_braces(), 0
     for cell in itertools.product(*[range(n) for n in N]):
         if face(2, cell, upper=True) not in OPEN:   # braces disappear only with the ceiling
@@ -440,13 +464,15 @@ def main():
     ap.add_argument("--edge", type=float, help=f"cell size (distance between bar axes), mm (default {EDGE:g})")
     ap.add_argument("--plate", type=float, default=0.0,
                     help="fill the middle pane of closed inner walls with a plate this thick, mm (default: none)")
+    ap.add_argument("--sparse", action="store_true",
+                    help="sparse walls: only the middle pane frame, plus vertical muntins in vertical walls")
     args = ap.parse_args()
 
     defaults = dict(edge=EDGE, rod=ROD, chamfer=CHAMFER, muntin=MUNTIN, plate=0.0)
     set_dims(args.edge, args.rod, args.chamfer, args.muntin)
     suffix = "".join(f"_{k}{v:g}" for k, v in
                      dict(edge=EDGE, rod=ROD, chamfer=CHAMFER, muntin=MUNTIN, plate=args.plate).items()
-                     if v != defaults[k])
+                     if v != defaults[k]) + ("_sparse" if args.sparse else "")
 
     paths = load_paths(args.paths) if args.paths else None
     configure(paths, args.size)
@@ -456,7 +482,7 @@ def main():
           f" muntin {MUNTIN:g} mm, pane {pane_size():.2f} mm")
     if paths:
         describe(paths)
-    tm = build(args.plate)
+    tm = build(args.plate, args.sparse)
     os.makedirs(args.out, exist_ok=True)
     for ext in ("stl", "3mf"):
         tm.export(os.path.join(args.out, f"{name}.{ext}"))
