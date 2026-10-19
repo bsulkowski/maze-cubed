@@ -295,6 +295,38 @@ def muntins():
     return parts
 
 
+def plates(t):
+    """Optional plates filling the middle pane of every closed inner wall
+    (outer walls of the cube stay without them): they mark the walls inside
+    the maze and show depth when the cube is turned. A plate of thickness t
+    lies centred in the plane of the wall, its edges on the axes of the
+    surrounding muntins. Horizontal plates rest on the pads below them."""
+    if not t:
+        return []
+    t = t - 17 * EPS
+    c0, c1 = CENTERS[0], CENTERS[-1]
+    square = m3d.CrossSection.square([c1 - c0, c1 - c0]).translate([c0, c0])
+    parts = []
+    for axis in range(3):
+        a, b = (axis + 1) % 3, (axis + 2) % 3
+        for i in range(1, N[axis]):                 # inner planes only
+            sheet = m3d.CrossSection()
+            for j in range(N[a]):
+                for k in range(N[b]):
+                    w = [0, 0, 0]
+                    w[axis], w[a], w[b] = i - 1, j, k
+                    if (axis, tuple(w)) not in OPEN:
+                        sheet += square.translate([j * EDGE, k * EDGE])
+            if sheet.is_empty():
+                continue
+            slab = m3d.Manifold.extrude(sheet, t).translate([0, 0, -t / 2])
+            slab = slab.transform(axis_frame(axis).tolist())
+            pos = [0.0] * 3
+            pos[axis] = i * EDGE
+            parts.append(slab.translate(pos))
+    return parts
+
+
 def braces_spec():
     """The 4 braces of a cell: from a ceiling muntin crossing, diagonally
     (in plan), to the nearest corner post, attached at the height of the
@@ -362,9 +394,13 @@ def cell_pad():
 set_dims()
 
 
-def build():
+def build(plate=0.0):
     """Assemble the whole model; return a trimesh standing on the bed (z_min = 0)."""
-    parts = rods_and_nodes() + muntins()
+    plate_parts = plates(plate)
+    n_plates = sum(1 for axis, lo in itertools.product(range(3), itertools.product(*[range(-1, n) for n in N]))
+                   if 0 <= lo[axis] < N[axis] - 1 and all(0 <= lo[i] < N[i] for i in range(3) if i != axis)
+                   and (axis, lo) not in OPEN)
+    parts = rods_and_nodes() + muntins() + plate_parts
     braces, n_braces = cell_braces(), 0
     for cell in itertools.product(*[range(n) for n in N]):
         if face(2, cell, upper=True) not in OPEN:   # braces disappear only with the ceiling
@@ -378,7 +414,8 @@ def build():
             n_pads += 1
             parts.append(pad.translate([i * EDGE, j * EDGE, k * EDGE]))
     print(f"open walls: {len(OPEN)} | braces: {n_braces} of {len(BRACES) * np.prod(N)}"
-          f" | knee braces: {len(knees)} | pads: {n_pads}")
+          f" | knee braces: {len(knees)} | pads: {n_pads}"
+          + (f" | plates: {n_plates} ({plate:g} mm)" if plate else ""))
 
     frame = m3d.Manifold.batch_boolean(parts, m3d.OpType.Add).translate([h, h, h])
     mesh = frame.to_mesh()
@@ -401,12 +438,14 @@ def main():
     ap.add_argument("--chamfer", type=float, help=f"bar chamfer, mm (default {CHAMFER:g})")
     ap.add_argument("--muntin", type=float, help=f"muntin section, mm (default {MUNTIN:g})")
     ap.add_argument("--edge", type=float, help=f"cell size (distance between bar axes), mm (default {EDGE:g})")
+    ap.add_argument("--plate", type=float, default=0.0,
+                    help="fill the middle pane of closed inner walls with a plate this thick, mm (default: none)")
     args = ap.parse_args()
 
-    defaults = dict(edge=EDGE, rod=ROD, chamfer=CHAMFER, muntin=MUNTIN)
+    defaults = dict(edge=EDGE, rod=ROD, chamfer=CHAMFER, muntin=MUNTIN, plate=0.0)
     set_dims(args.edge, args.rod, args.chamfer, args.muntin)
     suffix = "".join(f"_{k}{v:g}" for k, v in
-                     dict(edge=EDGE, rod=ROD, chamfer=CHAMFER, muntin=MUNTIN).items()
+                     dict(edge=EDGE, rod=ROD, chamfer=CHAMFER, muntin=MUNTIN, plate=args.plate).items()
                      if v != defaults[k])
 
     paths = load_paths(args.paths) if args.paths else None
@@ -417,7 +456,7 @@ def main():
           f" muntin {MUNTIN:g} mm, pane {pane_size():.2f} mm")
     if paths:
         describe(paths)
-    tm = build()
+    tm = build(args.plate)
     os.makedirs(args.out, exist_ok=True)
     for ext in ("stl", "3mf"):
         tm.export(os.path.join(args.out, f"{name}.{ext}"))
