@@ -62,7 +62,8 @@ one, then tilt, turn and flip the cube until it comes out of the other.
 `ball.py` makes a truncated octahedron cut from a 16 mm cube: the cube's
 edges and corners cut away, leaving 6 squares and 8 hexagons. It prints
 standing on a hexagon without supports (`--on square` for a square face)
-and rolls well. A ball of 15–16 mm works best; 10 mm is clearly too small.
+and rolls well. All its edges are chamfered by 0.4 mm, like the bars
+(`--chamfer`). A ball of 15–16 mm works best; 10 mm is clearly too small.
 The cube size is set with `--cube`.
 
 ## The knot
