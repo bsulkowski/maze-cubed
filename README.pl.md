@@ -178,8 +178,7 @@ i `lab345_1` powstały z powyższych poleceń.
   pod skrzyżowaniem szprosów. Ku górze wspornik poszerza się o 0,4 mm:
   slicer bierze obrys warstwy z jej środka, gdzie pochyły wspornik jest
   już przesunięty na zewnątrz, a poszerzenie sprawia, że ostatnie warstwy
-  pod mostem przykrywają całe skrzyżowanie. Zastrzały poszerzają się tak
-  samo.
+  pod mostem przykrywają całe skrzyżowanie.
 - **Zastrzały:** dwa zastrzały 45° pod górnym prętem każdej otwartej
   ścianki bocznej, dochodzące do pręta nad skrajnymi liniami szprosów.
   Wsporniki sufitu i zastrzały łączą się z prętami pionowymi na tej samej

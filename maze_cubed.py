@@ -48,7 +48,7 @@ EDGE = 25.0      # mm, cell size (axis to axis)
 ROD = 2.4        # mm, square bar section (6 lines of a 0.4 mm nozzle)
 CHAMFER = 0.4    # mm, edge chamfer (45°)
 MUNTIN = 1.6     # mm, square muntin section (4 lines of a 0.4 mm nozzle)
-FLARE = 0.4      # mm, braces widen by this much towards the top (0.2 mm per side), so
+FLARE = 0.4      # mm, ceiling braces widen by this much towards the top (0.2 mm per side), so
                  # that the last printed layers under a bridge cover the whole crossing
 PLATE = 0.8      # mm, plate in the middle pane of closed inner walls (0 = none)
 DIVS = 3         # number of panes the muntins divide a window into, per direction
@@ -394,7 +394,7 @@ def knee_braces():
             # bottom end lowered by the same amount — still 45°
             p = list(base); p[along] += pv; p[2] += c1 - h
             q = list(base); q[along] += ph; q[2] = z_top - h
-            out.append(slanted_bar(p, q, w, 6 * EPS, 6 * EPS, FLARE))
+            out.append(slanted_bar(p, q, w, 6 * EPS, 6 * EPS))
     return out
 
 

@@ -170,7 +170,7 @@ practically never comes up.
   0.4 mm: a slicer takes each layer's outline from the middle of the
   layer, where a leaning brace has already moved outwards, and the
   widening keeps the last layers under the bridge covering the whole
-  crossing. Knee braces widen the same way.
+  crossing.
 - **Knee braces:** two 45° braces under the top bar of every open side
   wall, ending under the bar above the outer muntin lines. Ceiling braces
   and knee braces meet the posts at the same height.
