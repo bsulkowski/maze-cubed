@@ -166,7 +166,11 @@ practically never comes up.
   together with the ceiling. Every horizontal section of a brace is a
   square aligned with the lattice (rotated 45° relative to the brace's own
   axis), and its top lies at the underside of the pad, where the bridge
-  starts — exactly under the muntin crossing.
+  starts — under the muntin crossing. Towards the top the brace widens by
+  0.4 mm: a slicer takes each layer's outline from the middle of the
+  layer, where a leaning brace has already moved outwards, and the
+  widening keeps the last layers under the bridge covering the whole
+  crossing. Knee braces widen the same way.
 - **Knee braces:** two 45° braces under the top bar of every open side
   wall, ending under the bar above the outer muntin lines. Ceiling braces
   and knee braces meet the posts at the same height.

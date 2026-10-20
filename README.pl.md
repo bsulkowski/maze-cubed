@@ -175,7 +175,11 @@ i `lab345_1` powstały z powyższych poleceń.
   Znikają tylko razem z sufitem. Każdy przekrój poziomy wspornika to
   kwadrat w osiach kraty (względem osi wspornika obrócony o 45°), a jego
   górny koniec leży na spodzie podpórki, tam gdzie zaczyna się most —
-  dokładnie pod skrzyżowaniem szprosów.
+  pod skrzyżowaniem szprosów. Ku górze wspornik poszerza się o 0,4 mm:
+  slicer bierze obrys warstwy z jej środka, gdzie pochyły wspornik jest
+  już przesunięty na zewnątrz, a poszerzenie sprawia, że ostatnie warstwy
+  pod mostem przykrywają całe skrzyżowanie. Zastrzały poszerzają się tak
+  samo.
 - **Zastrzały:** dwa zastrzały 45° pod górnym prętem każdej otwartej
   ścianki bocznej, dochodzące do pręta nad skrajnymi liniami szprosów.
   Wsporniki sufitu i zastrzały łączą się z prętami pionowymi na tej samej

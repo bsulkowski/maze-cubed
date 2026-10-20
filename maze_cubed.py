@@ -12,7 +12,9 @@ Construction:
 - in every cell, 4 braces under the muntin crossings of the ceiling,
   diagonal in plan, running to the nearest corner post and attached at the
   height of the upper muntin line lowered by half a bar; square horizontal
-  section, sitting exactly under the muntin crossing at bridge level;
+  section, sitting under the muntin crossing at bridge level and widening
+  slightly towards the top (FLARE), so that the last printed layers cover
+  the whole crossing;
 - in every closed inner wall (not on the outside of the cube): a plate of
   thickness PLATE filling the middle pane; it marks the walls inside the
   maze and shows their depth as the cube is turned;
@@ -46,6 +48,8 @@ EDGE = 25.0      # mm, cell size (axis to axis)
 ROD = 2.4        # mm, square bar section (6 lines of a 0.4 mm nozzle)
 CHAMFER = 0.4    # mm, edge chamfer (45°)
 MUNTIN = 1.6     # mm, square muntin section (4 lines of a 0.4 mm nozzle)
+FLARE = 0.4      # mm, braces widen by this much towards the top (0.2 mm per side), so
+                 # that the last printed layers under a bridge cover the whole crossing
 PLATE = 0.8      # mm, plate in the middle pane of closed inner walls (0 = none)
 DIVS = 3         # number of panes the muntins divide a window into, per direction
 EPS = 0.0047     # mm, micro-offsets that keep faces of different elements from
@@ -230,24 +234,35 @@ def octo_prism(axis, a0, a1, hh=None):
     return p.transform(axis_frame(axis).tolist())
 
 
-def slanted_bar(p, q, w, overrun=0.0, underrun=0.0):
-    """Oblique prism whose every horizontal section is a w×w square with
-    sides parallel to X and Y, the section centres lying on segment p→q
-    (p below q). Cut horizontally at both ends. The section perpendicular to
-    the axis is not square — instead, where the bar meets the lattice, its
-    footprint matches the square of a crossing. `overrun` and `underrun`
-    extend the top and bottom ends along the axis by the given height (so
-    the ends don't share a plane with other elements)."""
+def slanted_bar(p, q, w, overrun=0.0, underrun=0.0, flare=0.0):
+    """Oblique bar whose every horizontal section is a square with sides
+    parallel to X and Y, the section centres lying on segment p→q (p below
+    q). Cut horizontally at both ends. The section perpendicular to the axis
+    is not square — instead, where the bar meets the lattice, its footprint
+    matches the square of a crossing. `overrun` and `underrun` extend the
+    top and bottom ends along the axis by the given height (so the ends
+    don't share a plane with other elements).
+
+    `flare` widens the bar towards the top: the section grows linearly from
+    w at p to w + flare at q. A slicer takes each layer's outline from the
+    middle of the layer, where a leaning bar has already moved outwards;
+    the flare keeps the last layers under a bridge covering the whole
+    crossing square."""
     p, q = np.asarray(p, float), np.asarray(q, float)
     d = q - p
     assert d[2] > 0
     q = q + d / d[2] * overrun
     p = p - d / d[2] * underrun
     d = q - p
-    M = [[1, 0, d[0] / d[2], p[0]],
-         [0, 1, d[1] / d[2], p[1]],
-         [0, 0, 1, p[2]]]
-    return m3d.Manifold.cube([w, w, d[2]]).translate([-w / 2, -w / 2, 0]).transform(M)
+    if not flare:
+        M = [[1, 0, d[0] / d[2], p[0]],
+             [0, 1, d[1] / d[2], p[1]],
+             [0, 0, 1, p[2]]]
+        return m3d.Manifold.cube([w, w, d[2]]).translate([-w / 2, -w / 2, 0]).transform(M)
+    lo, hi = w / 2, (w + flare) / 2
+    pts = [(p[0] + sx * lo, p[1] + sy * lo, p[2]) for sx in (-1, 1) for sy in (-1, 1)]
+    pts += [(q[0] + sx * hi, q[1] + sy * hi, q[2]) for sx in (-1, 1) for sy in (-1, 1)]
+    return m3d.Manifold.hull_points(pts)
 
 
 def rods_and_nodes():
@@ -354,7 +369,7 @@ def cell_braces():
     exactly the square of the muntin crossing (rotated 45° relative to the
     brace axis)."""
     w = w_brace()
-    return m3d.Manifold.batch_boolean([slanted_bar(p, q, w, 4 * EPS, 4 * EPS) for p, q in BRACES],
+    return m3d.Manifold.batch_boolean([slanted_bar(p, q, w, 4 * EPS, 4 * EPS, FLARE) for p, q in BRACES],
                                       m3d.OpType.Add)
 
 
@@ -379,7 +394,7 @@ def knee_braces():
             # bottom end lowered by the same amount — still 45°
             p = list(base); p[along] += pv; p[2] += c1 - h
             q = list(base); q[along] += ph; q[2] = z_top - h
-            out.append(slanted_bar(p, q, w, 6 * EPS, 6 * EPS))
+            out.append(slanted_bar(p, q, w, 6 * EPS, 6 * EPS, FLARE))
     return out
 
 
