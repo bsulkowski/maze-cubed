@@ -51,7 +51,7 @@ def main():
     ap.add_argument("-o", "--out", required=True)
     ap.add_argument("--paths", help="overlay the maze paths from a file")
     ap.add_argument("--cell", nargs=3, type=int, help="show a single cell (coordinates 1..N)")
-    ap.add_argument("--ball", action="store_true", help="ball: colour the smallest faces (squares) dark")
+    ap.add_argument("--ball", action="store_true", help="ball: colour the square faces dark")
     ap.add_argument("--size", type=int, default=700, help="side of one panel in pixels")
     args = ap.parse_args()
 
@@ -59,10 +59,13 @@ def main():
     S = args.size
     if args.ball:
         cols = np.tile([0.92, 0.92, 0.92], (len(m.faces), 1))
-        nverts = [len(np.unique(m.faces[f])) for f in m.facets]
-        for f, k in zip(m.facets, nverts):
-            if k == min(nverts):
-                cols[f] = [0.12, 0.12, 0.12]
+        # the squares are the large faces farthest from the centre (hexagons
+        # are closer; chamfer strips are small; the walls of a hole are near the axis)
+        c = m.centroid
+        dist = np.array([abs((m.vertices[m.faces[f[0]][0]] - c) @ n) for f, n in zip(m.facets, m.facets_normal)])
+        big = np.asarray(m.facets_area) > 0.1 * np.max(m.facets_area)
+        for k in np.argsort(-np.where(big, dist, -1))[:6]:
+            cols[m.facets[k]] = [0.12, 0.12, 0.12]
         panels = [render(m, 25, -55, size=S, colors=cols), render(m, -60, 30, size=S, colors=cols)]
     elif args.cell:
         t = crop_cell(m, args.cell)

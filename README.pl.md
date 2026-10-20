@@ -18,12 +18,12 @@ trójlistnik.
 
 | Plik | Rozmiar | Droga | Odgałęzienia | Węzeł | Uwagi |
 |---|---|---|---|---|---|
-| `lab2_1` | 2×2×2, 42 mm, ~13 g | 8 z 8 komórek | 0 | — | tylko do testów druku |
-| `lab3_1` | 3×3×3, 62 mm, ~35 g | 14 z 27 komórek | 5 | — | rozgrzewka |
-| `lab334_1` | 3×3×4, 62×62×82 mm, ~46 g | 19 z 36 komórek | 6 | — | krok wyżej |
-| `lab344_1` | 3×4×4, 62×82×82 mm, ~60 g | 21 z 48 komórek | 8 | — | długie ślepe zaułki |
-| `lab4_1` | 4×4×4, 82 mm, ~77 g | 39 z 64 komórek | 9 | trójlistnik | główne wyzwanie |
-| `lab345_1` | 3×4×5, 62×82×102 mm, ~73 g | 39 z 60 komórek | 9 | trójlistnik | różne boki ułatwiają orientację |
+| `lab2_1` | 2×2×2, 52 mm, ~16 g | 8 z 8 komórek | 0 | — | tylko do testów druku |
+| `lab3_1` | 3×3×3, 77 mm, ~46 g | 14 z 27 komórek | 5 | — | rozgrzewka |
+| `lab334_1` | 3×3×4, 77×77×102 mm, ~61 g | 19 z 36 komórek | 6 | — | krok wyżej |
+| `lab344_1` | 3×4×4, 77×102×102 mm, ~79 g | 21 z 48 komórek | 8 | — | długie ślepe zaułki |
+| `lab4_1` | 4×4×4, 102 mm, ~102 g | 39 z 64 komórek | 9 | trójlistnik | główne wyzwanie |
+| `lab345_1` | 3×4×5, 77×102×127 mm, ~97 g | 39 z 60 komórek | 9 | trójlistnik | różne boki ułatwiają orientację |
 
 Masy dla PLA. Każdy labirynt jest *doskonały*: każda komórka jest
 osiągalna, nie ma pętli, a od wejścia do wyjścia prowadzi dokładnie jedna
@@ -41,14 +41,18 @@ na przeciwległych bokach 3×4, w `lab345_1` po jednym na każdym z dużych
 boków 4×5. Każdy z nich może być wejściem: wrzuć kulkę do jednego,
 a potem przechylaj, obracaj i przewracaj kostkę, aż wypadnie drugim.
 
+Kulka ma otwór na wylot — nić Ariadny: przewlecz przez nią nitkę albo
+cienką tasiemkę, a nitka pociągnie się za kulką i pokaże drogę, którą
+przeszła.
+
 ## Druk
 
 - Bez podpór, w orientacji z pliku.
 - Domyślne wymiary są dobrane do dyszy 0,4 mm: pręty kraty 2,4 mm
   (6 linii), szprosy 1,6 mm (4 linie), fazka 0,4 mm.
 - Każda pozioma ścianka opiera się na ukośnych wspornikach i podpórkach
-  ustawionych dokładnie pod jej mostami. Najdłuższe mosty mają ok. 6,4 mm
-  między osiami (4,8 mm w świetle).
+  ustawionych dokładnie pod jej mostami. Najdłuższe mosty mają ok. 8,3 mm
+  między osiami (6,7 mm w świetle).
 - Wsporniki są nachylone ok. 35° od poziomu; pomaga dobre chłodzenie.
   Ich spód może wyjść trochę mniej równy, co nie przeszkadza w grze.
 - Projektowane pod Bambu Lab A1 mini; wszystkie modele mieszczą się
@@ -60,12 +64,15 @@ a potem przechylaj, obracaj i przewracaj kostkę, aż wypadnie drugim.
 
 ![Piłka](images/ball.png)
 
-`ball.py` tworzy ośmiościan ścięty wycięty z sześcianu o boku 16 mm:
+`ball.py` tworzy ośmiościan ścięty wycięty z sześcianu o boku 20 mm:
 krawędzie i narożniki sześcianu ścięte, zostaje 6 kwadratów i 8
 sześciokątów. Drukuje się na sześciokątnej ściance bez podpór (`--on
 square` — na kwadratowej) i dobrze się toczy. Wszystkie krawędzie mają
-fazkę 0,4 mm, jak pręty (`--chamfer`). Najlepiej działa kulka 15–16 mm; 10
-mm to zdecydowanie za mało. Wielkość sześcianu ustawia `--cube`.
+fazkę 0,4 mm, jak pręty (`--chamfer`). Przez środek, między dwoma
+przeciwległymi sześciokątami, biegnie sześciokątny otwór 5 mm na nitkę, z
+fazkami na obu wylotach (`--hole`; `--hole 0` — bez otworu). Przejścia
+przepuszczają kulkę do 21 mm, więc najlepiej działa 19–20 mm. Wielkość
+sześcianu ustawia `--cube`.
 
 ## Węzeł
 
@@ -94,7 +101,7 @@ pip install -r requirements.txt
 
 python maze_cubed.py mazes/lab4_1.txt     # labirynt → models/lab4_1.stl, .3mf
 python maze_cubed.py --size 4 4 4         # pełna kratownica bez przejść
-python ball.py                            # piłka → models/ball_16mm.stl, .3mf
+python ball.py                            # piłka → models/ball_20mm.stl, .3mf
 python tools/knot.py mazes/lab4_1.txt     # typ węzła drogi
 python tools/preview.py models/lab4_1.stl --paths mazes/lab4_1.txt -o images/lab4_1.png
 ```
@@ -154,10 +161,15 @@ i `lab345_1` powstały z powyższych poleceń.
 ![Pojedyncza komórka z otwartą ścianką](images/cell.png)
 
 - **Kratownica:** pręty o przekroju kwadratowym z fazowanymi krawędziami,
-  rozstaw osi 20 mm.
+  rozstaw osi 25 mm.
 - **Ścianki:** kratka kwadratowych szprosów dzieląca każde okno na 3 × 3
   okienka, wyśrodkowana w płaszczyźnie prętów. Na przejściach kratki
   nie ma.
+- **Płytki:** w każdej zamkniętej ściance wewnętrznej środkowe okienko
+  wypełnia płytka 0,8 mm. Ścianki we wnętrzu labiryntu są dzięki temu
+  wyraźne, a przy obracaniu kostki płytki z różnych głębokości przesuwają
+  się względem siebie, co pokazuje, jak głęboko leżą. Zewnętrzne ścianki
+  kostki płytek nie mają.
 - **Wsporniki sufitu:** 4 w każdej komórce, w rzucie po przekątnej, od
   skrzyżowań szprosów sufitu do najbliższego narożnego pręta pionowego.
   Znikają tylko razem z sufitem. Każdy przekrój poziomy wspornika to
@@ -172,9 +184,10 @@ i `lab345_1` powstały z powyższych poleceń.
   okienka sięga w dół do poziomu spodu prętów (o grubość fazki pod
   szprosy). Na dolnej ściance kostki opiera się o stół.
 
-Pręt, fazkę, szpros i bok komórki można zmienić w wierszu poleceń
-(`--rod`, `--chamfer`, `--muntin`, `--edge`); nazwa pliku wynikowego
-dostaje wtedy przyrostek, np. `lab3_1_rod2_chamfer0.5_muntin1`. Szpros
+Pręt, fazkę, szpros, bok komórki i grubość płytek można zmienić
+w wierszu poleceń (`--rod`, `--chamfer`, `--muntin`, `--edge`, `--plate`;
+`--plate 0` zostawia okienka puste); nazwa pliku wynikowego dostaje wtedy
+przyrostek, np. `lab3_1_edge20_plate0`. Szpros
 nie może być szerszy niż płaska część pręta (pręt − 2 × fazka).
 
 Elementy, które się stykają, różnią się wymiarami o kilka do

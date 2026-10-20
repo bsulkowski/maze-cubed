@@ -17,12 +17,12 @@ a trefoil.
 
 | File | Size | Route | Branches | Knot | Notes |
 |---|---|---|---|---|---|
-| `lab2_1` | 2×2×2, 42 mm, ~13 g | 8 of 8 cells | 0 | — | print test only |
-| `lab3_1` | 3×3×3, 62 mm, ~35 g | 14 of 27 cells | 5 | — | warm-up |
-| `lab334_1` | 3×3×4, 62×62×82 mm, ~46 g | 19 of 36 cells | 6 | — | a step up |
-| `lab344_1` | 3×4×4, 62×82×82 mm, ~60 g | 21 of 48 cells | 8 | — | long dead ends |
-| `lab4_1` | 4×4×4, 82 mm, ~77 g | 39 of 64 cells | 9 | trefoil | the main challenge |
-| `lab345_1` | 3×4×5, 62×82×102 mm, ~73 g | 39 of 60 cells | 9 | trefoil | unequal sides help orientation |
+| `lab2_1` | 2×2×2, 52 mm, ~16 g | 8 of 8 cells | 0 | — | print test only |
+| `lab3_1` | 3×3×3, 77 mm, ~46 g | 14 of 27 cells | 5 | — | warm-up |
+| `lab334_1` | 3×3×4, 77×77×102 mm, ~61 g | 19 of 36 cells | 6 | — | a step up |
+| `lab344_1` | 3×4×4, 77×102×102 mm, ~79 g | 21 of 48 cells | 8 | — | long dead ends |
+| `lab4_1` | 4×4×4, 102 mm, ~102 g | 39 of 64 cells | 9 | trefoil | the main challenge |
+| `lab345_1` | 3×4×5, 77×102×127 mm, ~97 g | 39 of 60 cells | 9 | trefoil | unequal sides help orientation |
 
 Weights are for PLA. Every maze is *perfect*: every cell is reachable, there
 are no loops, and there is exactly one route from the entrance to the exit.
@@ -40,14 +40,18 @@ Every maze has two openings to the outside — in `lab2_1`, `lab3_1` and
 each of the large 4×5 sides. Either can be the entrance: drop the ball into
 one, then tilt, turn and flip the cube until it comes out of the other.
 
+The ball has a hole through it — Ariadne's thread: pass a thread or a thin
+tape through it, and the thread trails behind the ball and shows the way
+it has come.
+
 ## Printing
 
 - No supports. Print in the orientation from the file.
 - Default dimensions are made for a 0.4 mm nozzle: frame bars 2.4 mm
   (6 lines), window grid 1.6 mm (4 lines), 0.4 mm chamfer.
 - Every horizontal wall rests on diagonal braces and small pads placed
-  exactly under its bridges. The longest bridges are about 6.4 mm
-  centre to centre (4.8 mm clear).
+  exactly under its bridges. The longest bridges are about 8.3 mm
+  centre to centre (6.7 mm clear).
 - Braces are about 35° from horizontal; good part cooling helps. Their
   undersides may come out slightly rough, which doesn't affect play.
 - Designed for a Bambu Lab A1 mini; all models fit its 180 mm build
@@ -59,12 +63,14 @@ one, then tilt, turn and flip the cube until it comes out of the other.
 
 ![Ball](images/ball.png)
 
-`ball.py` makes a truncated octahedron cut from a 16 mm cube: the cube's
+`ball.py` makes a truncated octahedron cut from a 20 mm cube: the cube's
 edges and corners cut away, leaving 6 squares and 8 hexagons. It prints
 standing on a hexagon without supports (`--on square` for a square face)
 and rolls well. All its edges are chamfered by 0.4 mm, like the bars
-(`--chamfer`). A ball of 15–16 mm works best; 10 mm is clearly too small.
-The cube size is set with `--cube`.
+(`--chamfer`). Straight through the centre, between two opposite hexagons,
+runs a hexagonal 5 mm hole for a thread, countersunk at both ends
+(`--hole`, `--hole 0` for none). The passages let through a ball of up to
+21 mm, so 19–20 mm works best. The cube size is set with `--cube`.
 
 ## The knot
 
@@ -90,7 +96,7 @@ pip install -r requirements.txt
 
 python maze_cubed.py mazes/lab4_1.txt     # maze → models/lab4_1.stl, .3mf
 python maze_cubed.py --size 4 4 4         # full lattice, no passages
-python ball.py                            # ball → models/ball_16mm.stl, .3mf
+python ball.py                            # ball → models/ball_20mm.stl, .3mf
 python tools/knot.py mazes/lab4_1.txt     # knot type of the route
 python tools/preview.py models/lab4_1.stl --paths mazes/lab4_1.txt -o images/lab4_1.png
 ```
@@ -148,9 +154,13 @@ practically never comes up.
 
 ![A single cell with an open side wall](images/cell.png)
 
-- **Lattice:** square bars with chamfered edges, 20 mm between axes.
+- **Lattice:** square bars with chamfered edges, 25 mm between axes.
 - **Walls:** a grid of square muntins dividing each window into 3 × 3
   panes, centred in the plane of the bars. Open walls have no grid.
+- **Plates:** in every closed inner wall the middle pane is filled with a
+  0.8 mm plate. The walls inside the maze stand out, and as the cube turns,
+  plates at different depths shift against each other, which shows how
+  deep they lie. The outer walls of the cube have no plates.
 - **Ceiling braces:** 4 per cell, diagonal in plan, from the muntin
   crossings of the ceiling to the nearest corner post. They disappear only
   together with the ceiling. Every horizontal section of a brace is a
@@ -164,9 +174,10 @@ practically never comes up.
   pane extends down to the level of the bar undersides (one chamfer below
   the muntins). On the bottom face it rests on the print bed.
 
-Bar, chamfer, muntin and cell size can be changed on the command line
-(`--rod`, `--chamfer`, `--muntin`, `--edge`); the output file then gets a
-suffix, e.g. `lab3_1_rod2_chamfer0.5_muntin1`. A muntin can't be wider
+Bar, chamfer, muntin, cell size and plate thickness can be changed on the
+command line (`--rod`, `--chamfer`, `--muntin`, `--edge`, `--plate`;
+`--plate 0` leaves the panes empty); the output file then gets a suffix,
+e.g. `lab3_1_edge20_plate0`. A muntin can't be wider
 than the flat part of a bar (bar − 2 × chamfer).
 
 Touching elements differ in size by a few to a few dozen micrometres

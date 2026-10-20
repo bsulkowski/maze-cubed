@@ -12,11 +12,12 @@ it has 2.6 times more contact with the bed than standing on a square.
 All edges get a 0.4 mm chamfer by default (--chamfer), like the lattice
 bars; it is also the countersink at both ends of the hole.
 
-Size: the cube side is the width across opposite squares (16 mm by default);
+Size: the cube side is the width across opposite squares (20 mm by default);
 across opposite hexagons it is √3/2 ≈ 0.87 of that, corner to corner
-√5/2 ≈ 1.12. A ball of 15–16 mm works best in the default mazes.
+√5/2 ≈ 1.12. A ball of 19–20 mm works best in the default mazes
+(passages let through 21 mm).
 
-Optional "Ariadne's thread" hole (--hole): straight through the centre,
+"Ariadne's thread" hole (--hole, 5 mm by default): straight through the centre,
 between the face the ball stands on and the opposite one, so a thread or
 tape can be pulled through the ball and trace its way through the maze.
 It has the shape of that face, scaled down to the given width across flats
@@ -25,9 +26,9 @@ octagonal (corners cut by 1/6 of the width, as on the lattice bars). It
 runs vertically when printed, so it needs no supports.
 
 Usage:
-    python ball.py              # cut from a 16 mm cube
-    python ball.py --cube 15
-    python ball.py --cube 20 --hole 5
+    python ball.py              # cut from a 20 mm cube, 5 mm hole
+    python ball.py --cube 19
+    python ball.py --hole 0     # no hole
     python ball.py --on square
 """
 import argparse
@@ -133,10 +134,10 @@ def drill(ball, width, on, plain, leg):
 
 def main():
     ap = argparse.ArgumentParser(description="Ball for the Maze³ mazes")
-    ap.add_argument("--cube", type=float, default=16.0,
-                    help="side of the cube it is cut from = width across squares, mm (default 16)")
-    ap.add_argument("--hole", type=float, default=0.0,
-                    help="octagonal through hole for a thread, width across flats, mm (default: none)")
+    ap.add_argument("--cube", type=float, default=20.0,
+                    help="side of the cube it is cut from = width across squares, mm (default 20)")
+    ap.add_argument("--hole", type=float, default=5.0,
+                    help="through hole for a thread, width across flats, mm (default 5; 0 = none)")
     ap.add_argument("--chamfer", type=float, default=0.4,
                     help="chamfer on all edges and at the ends of the hole, mm (default 0.4; 0 = none)")
     ap.add_argument("--on", choices=("hexagon", "square"), default="hexagon",
@@ -169,7 +170,8 @@ def main():
           "| corner to corner mm:", round(2 * np.linalg.norm(ball.vertices - ball.centroid, axis=1).max(), 2),
           "| PLA mass ~g:", round(ball.volume / 1000 * 1.24, 2))
     name = (f"ball_{args.cube:g}mm" + ("_square" if args.on == "square" else "")
-            + (f"_hole{args.hole:g}" if args.hole else ""))
+            + (f"_hole{args.hole:g}" if args.hole != ap.get_default("hole") else "")
+            + (f"_chamfer{args.chamfer:g}" if args.chamfer != ap.get_default("chamfer") else ""))
     os.makedirs(args.out, exist_ok=True)
     for ext in ("stl", "3mf"):
         ball.export(os.path.join(args.out, f"{name}.{ext}"))
